@@ -1,0 +1,19 @@
+name: wordpress-agnes
+recipe: wordpress
+config:
+  webroot: .
+services:
+  database:
+    type: mysql #type de DB
+    portforward: 3307 #Port sur lequel on va écouter
+    creds:
+      user: admin #Nom d'utilisateur de DB
+      password: admin #Password de DB
+      database: madb #Nom de la DB
+tooling:
+  install:
+    service: appserver
+    description: "commande pour installer worpress"
+    cmd:
+      - echo Installation Wordpress....
+      - php config/install_wp.php
