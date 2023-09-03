@@ -96,6 +96,33 @@ ul.custom-menu li:hover > ul{
     left:0;
 }
 
+/* -- Footer -- */
+
+.footer-container {
+    background-color: #fae5f8;
+    height: 150px;
+    width: 100%;
+}
+
+.footer-container:hover {
+    color: #8a2be2;
+}
+
+.custom-footer-menu {
+    display: flex;
+    flex-direction: column;
+    float: right;
+    margin-right: 50px;
+    margin-top: 30px;
+    text-align: justify;
+}
+
+#logo {
+    margin-left: 25px;
+    margin-top: 25px;
+    width: 100px !important;
+}
+
 /* -- Mobiles -- */
 @media(max-width: 768px){
     ul.custom-menu{

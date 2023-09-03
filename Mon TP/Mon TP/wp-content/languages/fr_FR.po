@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the WordPress - 6.3.x - Development package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2023-08-23 07:18:56+0000\n"
+"PO-Revision-Date: 2023-08-30 08:44:34+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -5650,7 +5650,7 @@ msgstr "Impossible de déterminer l’extension qui a été installée."
 #: wp-admin/includes/ajax-actions.php:4526
 #: wp-admin/includes/ajax-actions.php:4653
 #: wp-admin/includes/ajax-actions.php:4722
-#: wp-admin/includes/class-wp-site-health.php:2023
+#: wp-admin/includes/class-wp-site-health.php:2015
 msgid "Unable to connect to the filesystem. Please confirm your credentials."
 msgstr "Impossible de se connecter au système de fichier. Veuillez confirmer vos identifiants de connexion."
 
@@ -7352,9 +7352,9 @@ msgstr "Élément ajouté."
 #: wp-admin/includes/class-wp-site-health.php:1586
 #: wp-admin/includes/class-wp-site-health.php:1670
 #: wp-admin/includes/class-wp-site-health.php:1689
-#: wp-admin/includes/class-wp-site-health.php:2495
-#: wp-admin/includes/class-wp-site-health.php:2528
-#: wp-admin/includes/class-wp-site-health.php:2654
+#: wp-admin/includes/class-wp-site-health.php:2487
+#: wp-admin/includes/class-wp-site-health.php:2520
+#: wp-admin/includes/class-wp-site-health.php:2646
 #: wp-admin/includes/dashboard.php:1305 wp-admin/includes/dashboard.php:1317
 #: wp-admin/includes/dashboard.php:1330 wp-admin/includes/dashboard.php:1902
 #: wp-admin/includes/media.php:3243 wp-admin/includes/meta-boxes.php:80
