@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the WordPress - 6.3.x - Development package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2023-08-30 08:44:34+0000\n"
+"PO-Revision-Date: 2023-09-04 09:22:09+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1664,7 +1664,7 @@ msgstr "Le nom de la composition."
 
 #: wp-includes/rest-api/endpoints/class-wp-rest-block-patterns-controller.php:90
 msgid "Sorry, you are not allowed to view the registered block patterns."
-msgstr "Désolé, vous n’avez pas les droits nécessaires pour voir les compositions de blocs enregistrées."
+msgstr "Désolé, vous n’avez pas l‘autorisation pour voir les compositions de blocs enregistrées."
 
 #: wp-includes/rest-api/endpoints/class-wp-rest-block-pattern-categories-controller.php:144
 msgid "The category label, in human readable format."
@@ -1676,7 +1676,7 @@ msgstr "Le nom de la catégorie."
 
 #: wp-includes/rest-api/endpoints/class-wp-rest-block-pattern-categories-controller.php:70
 msgid "Sorry, you are not allowed to view the registered block pattern categories."
-msgstr "Désolé, vous n’avez pas les droits nécessaires pour voir les catégories de compositions de blocs enregistrées."
+msgstr "Désolé, vous n’avez pas l‘autorisation pour voir les catégories de compositions de blocs enregistrées."
 
 #: wp-includes/media.php:4777 wp-admin/edit.php:181 wp-admin/post.php:322
 #: wp-admin/upload.php:326
@@ -2035,7 +2035,7 @@ msgstr "Limiter le jeu de résultats aux comptes correspondant à au moins une c
 
 #: wp-includes/rest-api/endpoints/class-wp-rest-users-controller.php:205
 msgid "Sorry, you are not allowed to filter users by capability."
-msgstr "Désolé, vous n’avez pas la permission de filtrer les comptes par rôle."
+msgstr "Désolé, vous n’avez pas l‘autorisation de filtrer les comptes par rôle."
 
 #: wp-includes/rest-api/endpoints/class-wp-rest-url-details-controller.php:270
 msgid "Unable to retrieve body from response at this URL."
@@ -2183,7 +2183,7 @@ msgstr "Emplacement du menu non valide."
 #: wp-includes/rest-api/endpoints/class-wp-rest-menu-locations-controller.php:86
 #: wp-includes/rest-api/endpoints/class-wp-rest-menu-locations-controller.php:129
 msgid "Sorry, you are not allowed to view menu locations."
-msgstr "Désolé, vous n’êtes pas autorisé à voir ces emplacements de menu."
+msgstr "Désolé, vous n‘avez pas l‘autorisation pour voir ces emplacements de menu."
 
 #: wp-includes/rest-api/endpoints/class-wp-rest-menu-locations-controller.php:57
 msgid "An alphanumeric identifier for the menu location."
@@ -9404,7 +9404,7 @@ msgstr "Désolé, les commentaires ne sont pas autorisés pour cet élément."
 
 #: wp-includes/class-wp-oembed-controller.php:150
 msgid "Sorry, you are not allowed to make proxied oEmbed requests."
-msgstr "Désolé, vous n’êtes pas autorisé à faire des requêtes oEmbed passant par proxy."
+msgstr "Désolé, vous n’avez pas l‘autorisation pour faire des requêtes oEmbed passant par proxy."
 
 #: wp-includes/class-wp-oembed-controller.php:99
 msgid "Whether to perform an oEmbed discovery request for unsanctioned providers."
@@ -17152,7 +17152,7 @@ msgstr "Désolé, aucun article ne correspond."
 #: wp-includes/class-wp-xmlrpc-server.php:5941
 #: wp-includes/class-wp-xmlrpc-server.php:6820
 msgid "Sorry, you are not allowed to publish this post."
-msgstr "Désolé, vous n’avez pas l’autorisation de publier sur cet article."
+msgstr "Désolé, vous n’avez pas l’autorisation de publier cet article."
 
 #: wp-includes/class-wp-xmlrpc-server.php:5041
 #: wp-includes/class-wp-xmlrpc-server.php:6526
