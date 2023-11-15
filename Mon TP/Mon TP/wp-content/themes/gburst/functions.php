@@ -108,6 +108,14 @@ function monShortCode()
 }
 add_shortcode('monShortCode', 'monShortCode');
 
+// -  Avec paramètre
+function shortcodePromo($atts)
+{
+    $a = shortcode_atts(array('percent' => 10,), $atts);
+    return "<div>Promo de {$a['percent']}%</div>";
+}
+add_shortcode('promo', 'shortcodePromo');
+
 
 // --- WIDGET
 function register_custom_widget_area()
