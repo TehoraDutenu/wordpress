@@ -415,7 +415,7 @@ class AIOWPSecurity_Settings_Menu extends AIOWPSecurity_Admin_Menu {
 			return;
 		}
 
-		global $aio_wp_security, $aiowps_firewall_config;
+		global $aio_wp_security, $aiowps_firewall_config, $wpdb;
 
 		if (isset($_POST['aiowps_save_advanced_settings'])) {
 			if (empty($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'aiowpsec-ip-settings-nonce')) {
@@ -428,13 +428,14 @@ class AIOWPSecurity_Settings_Menu extends AIOWPSecurity_Admin_Menu {
 			if (in_array($ip_retrieve_method_id, array_keys(AIOS_Abstracted_Ids::get_ip_retrieve_methods()))) {
 				$aio_wp_security->configs->set_value('aiowps_ip_retrieve_method', $ip_retrieve_method_id, true);
 				$aiowps_firewall_config->set_value('aios_ip_retrieve_method', $ip_retrieve_method_id);
+				$logged_in_users_table = AIOWSPEC_TBL_LOGGED_IN_USERS;
 
 				//Clear logged in list because it might be showing wrong addresses
 				if (AIOWPSecurity_Utility::is_multisite_install()) {
-					delete_site_transient('users_online');
-				} else {
-					delete_transient('users_online');
+						$current_blog_id = get_current_blog_id();
+						$wpdb->query($wpdb->prepare("DELETE FROM `{$logged_in_users_table}` WHERE site_id = %d", $current_blog_id));
 				}
+				$wpdb->query("DELETE FROM `{$logged_in_users_table}`");
 
 				$this->show_msg_settings_updated();
 			}

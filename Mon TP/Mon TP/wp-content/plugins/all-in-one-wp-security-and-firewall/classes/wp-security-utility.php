@@ -171,7 +171,7 @@ class AIOWPSecurity_Utility {
 	 * @return string
 	 */
 	public static function generate_alpha_numeric_random_string($string_length) {
-		//Charecters present in table prefix
+		//Characters present in table prefix
 		$allowed_chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
 		$string = '';
 		//Generate random string
@@ -189,7 +189,7 @@ class AIOWPSecurity_Utility {
 	 * @return string
 	 */
 	public static function generate_alpha_random_string($string_length) {
-		//Charecters present in table prefix
+		//Characters present in table prefix
 		$allowed_chars = 'abcdefghijklmnopqrstuvwxyz';
 		$string = '';
 		//Generate random string
@@ -838,7 +838,7 @@ class AIOWPSecurity_Utility {
 	 * @return Boolean True if the WooCommerce plugin is active, otherwise false.
 	 */
 	public static function is_woocommerce_plugin_active() {
-		return class_exists('WooCommerce');
+		return is_plugin_active('woocommerce/woocommerce.php');
 	}
 
 	/**
@@ -915,7 +915,7 @@ class AIOWPSecurity_Utility {
 	/**
 	 * Change salt postfixes.
 	 *
-	 * @return boolen True if the salt postfixes are changed otherwise false.
+	 * @return boolean True if the salt postfixes are changed otherwise false.
 	 */
 	public static function change_salt_postfixes() {
 		global $aio_wp_security;
@@ -1023,5 +1023,23 @@ class AIOWPSecurity_Utility {
 		if (0 === $blog_id && !SUBDOMAIN_INSTALL) $blog_id = get_blog_id_from_url($domain, $default_path);
 
 		return $blog_id;
+	}
+
+	/**
+	 * Checks if the bbPress plugin is active.
+	 *
+	 * @return Boolean True if the bbPress plugin is active, otherwise false.
+	 */
+	public static function is_bbpress_plugin_active() {
+		return is_plugin_active('bbpress/bbpress.php');
+	}
+
+	/**
+	 * Checks if the Buddypress plugin is active.
+	 *
+	 * @return Boolean True if the Buddypress plugin is active, otherwise false.
+	 */
+	public static function is_buddypress_plugin_active() {
+		return is_plugin_active('buddypress/bp-loader.php');
 	}
 }

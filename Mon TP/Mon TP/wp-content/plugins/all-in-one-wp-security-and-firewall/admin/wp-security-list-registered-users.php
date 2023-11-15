@@ -22,17 +22,24 @@ class AIOWPSecurity_List_Registered_Users extends AIOWPSecurity_List_Table {
 		return $item[$column_name];
 	}
 
+	/**
+	 * Returns ID column html to be rendered.
+	 *
+	 * @param array $item - data for the columns on the current row
+	 *
+	 * @return string - the html to be rendered
+	 */
 	public function column_ID($item) {
 		//$tab = strip_tags($_REQUEST['tab']);
-		$approve_url = sprintf('admin.php?page=%s&action=%s&user_id=%s', AIOWPSEC_USER_REGISTRATION_MENU_SLUG, 'approve_acct', $item['ID']);
+		$approve_url = sprintf('admin.php?page=%s&tab=manual-approval&action=%s&user_id=%s', AIOWPSEC_USER_SECURITY_MENU_SLUG, 'approve_acct', $item['ID']);
 		//Add nonce to delete URL
 		$approve_url_nonce = wp_nonce_url($approve_url, "approve_user_acct", "aiowps_nonce");
 
-		$delete_url = sprintf('admin.php?page=%s&action=%s&user_id=%s', AIOWPSEC_USER_REGISTRATION_MENU_SLUG, 'delete_acct', $item['ID']);
+		$delete_url = sprintf('admin.php?page=%s&tab=manual-approval&action=%s&user_id=%s', AIOWPSEC_USER_SECURITY_MENU_SLUG, 'delete_acct', $item['ID']);
 		//Add nonce to delete URL
 		$delete_url_nonce = wp_nonce_url($delete_url, "delete_user_acct", "aiowps_nonce");
 
-		$block_ip = sprintf('admin.php?page=%s&action=%s&ip_address=%s', AIOWPSEC_USER_REGISTRATION_MENU_SLUG, 'block_ip', $item['ip_address']);
+		$block_ip = sprintf('admin.php?page=%s&tab=manual-approval&action=%s&ip_address=%s', AIOWPSEC_USER_SECURITY_MENU_SLUG, 'block_ip', $item['ip_address']);
 		//Add nonce to block IP
 		$block_ip_nonce = wp_nonce_url($block_ip, "block_ip", "aiowps_nonce");
 
@@ -240,7 +247,7 @@ class AIOWPSecurity_List_Registered_Users extends AIOWPSecurity_List_Table {
 				$msg .= ' <a href="admin.php?page='.AIOWPSEC_MAIN_MENU_SLUG.'&tab=permanent-block" target="_blank">'.__('View Blocked IPs','all-in-one-wp-security-and-firewall').'</a>';
 				AIOWPSecurity_Admin_Menu::show_msg_updated_st($msg);
 			}
-		} elseif ($entries != NULL) {
+		} elseif (!empty($entries)) {
 			// Block single IP
 			$result = AIOWPSecurity_Blocking::add_ip_to_block_list($entries, 'registration_spam');
 			if ($result === true) {

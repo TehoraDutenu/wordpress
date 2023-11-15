@@ -150,7 +150,7 @@ class AIOWPSecurity_Configure_Settings {
 		//Misc Options
 		//Copy protection feature
 		$aio_wp_security->configs->set_value('aiowps_copy_protection', '');//Checkbox
-		//Prevent others from dislaying your site in iframe
+		//Prevent others from displaying your site in iframe
 		$aio_wp_security->configs->set_value('aiowps_prevent_site_display_inside_frame', '');//Checkbox
 		//Prevent users enumeration
 		$aio_wp_security->configs->set_value('aiowps_prevent_users_enumeration', '');//Checkbox
@@ -323,7 +323,7 @@ class AIOWPSecurity_Configure_Settings {
 		//Misc Options
 		//Copy protection feature
 		$aio_wp_security->configs->add_value('aiowps_copy_protection', '');//Checkbox
-		//Prevent others from dislaying your site in iframe
+		//Prevent others from displaying your site in iframe
 		$aio_wp_security->configs->add_value('aiowps_prevent_site_display_inside_frame', '');//Checkbox
 		//Prevent users enumeration
 		$aio_wp_security->configs->add_value('aiowps_prevent_users_enumeration', '');//Checkbox
@@ -394,7 +394,7 @@ class AIOWPSecurity_Configure_Settings {
 			$aio_wp_security->configs->save_config();
 		}
 
-		
+		AIOWPSecurity_Comment::generate_antibot_keys(true);
 		update_option('aiowpsec_db_version', AIO_WP_SECURITY_DB_VERSION);
 	}
 
@@ -480,9 +480,6 @@ class AIOWPSecurity_Configure_Settings {
 			if (version_compare($firewall_version, '1.0.1', '<')) {
 				self::set_cookie_based_bruteforce_firewall_configs();
 			}
-			if (version_compare($firewall_version, '1.0.2', '<')) {
-				self::set_user_agent_firewall_configs();
-			}
 			if (version_compare($firewall_version, '1.0.3', '<')) {
 				self::set_ip_retrieve_method_configs();
 			}
@@ -491,6 +488,9 @@ class AIOWPSecurity_Configure_Settings {
 			}
 			if (version_compare($firewall_version, '1.0.5', '<')) {
 				self::upgrade_basic_firewall_rules_configs();
+			}
+			if (version_compare($firewall_version, '1.0.6', '<')) { //1.0.2 set but here making sure the blank user agent is not saved in settings.php which  may show a 403 error due to not empty user agent check removed from the rule
+				self::set_user_agent_firewall_configs();
 			}
 		}
 		update_option('aiowpsec_firewall_version', AIO_WP_SECURITY_FIREWALL_VERSION);

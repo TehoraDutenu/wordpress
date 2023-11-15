@@ -29,7 +29,6 @@ class __TwigTemplate_040602ebc7669cdfb9da26116daadadf72855abd5f9690ec0e527b909dc
 
         $this->blocks = [
             'content' => [$this, 'block_content'],
-            'translations' => [$this, 'block_translations'],
         ];
     }
 
@@ -101,6 +100,10 @@ class __TwigTemplate_040602ebc7669cdfb9da26116daadadf72855abd5f9690ec0e527b909dc
         // line 17
         echo json_encode(($context["mss_key_valid"] ?? null));
         echo ";
+  var wizard_has_tracking_settings = ";
+        // line 18
+        echo json_encode(($context["has_tracking_settings"] ?? null));
+        echo ";
 </script>
 
 <div id=\"mailpoet-wizard-container\"></div>
@@ -110,18 +113,15 @@ class __TwigTemplate_040602ebc7669cdfb9da26116daadadf72855abd5f9690ec0e527b909dc
 </div>
 
 ";
-    }
-
-    // line 28
-    public function block_translations($context, array $blocks = [])
-    {
-        $macros = $this->macros;
+        // line 27
+        $this->loadTemplate("mss_pitch_translations.html", "welcome_wizard.html", 27)->display($context);
+        // line 28
+        $this->loadTemplate("premium_key_validation_strings.html", "welcome_wizard.html", 28)->display($context);
         // line 29
-        $this->loadTemplate("mss_pitch_translations.html", "welcome_wizard.html", 29)->display($context);
+        $this->loadTemplate("settings_translations.html", "welcome_wizard.html", 29)->display($context);
         // line 30
-        $this->loadTemplate("premium_key_validation_strings.html", "welcome_wizard.html", 30)->display($context);
-        // line 31
-        $this->loadTemplate("settings_translations.html", "welcome_wizard.html", 31)->display($context);
+        echo "
+";
     }
 
     public function getTemplateName()
@@ -136,7 +136,7 @@ class __TwigTemplate_040602ebc7669cdfb9da26116daadadf72855abd5f9690ec0e527b909dc
 
     public function getDebugInfo()
     {
-        return array (  121 => 31,  119 => 30,  117 => 29,  113 => 28,  99 => 17,  95 => 16,  91 => 15,  87 => 14,  83 => 13,  78 => 11,  74 => 10,  70 => 9,  66 => 8,  62 => 7,  58 => 6,  54 => 5,  51 => 4,  47 => 3,  36 => 1,);
+        return array (  120 => 30,  118 => 29,  116 => 28,  114 => 27,  102 => 18,  98 => 17,  94 => 16,  90 => 15,  86 => 14,  82 => 13,  77 => 11,  73 => 10,  69 => 9,  65 => 8,  61 => 7,  57 => 6,  53 => 5,  50 => 4,  46 => 3,  35 => 1,);
     }
 
     public function getSourceContext()

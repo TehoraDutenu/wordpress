@@ -28,6 +28,11 @@ class AIOWPSecurity_User_Login {
 		if (is_admin() && AIOWPSecurity_Utility_Permissions::has_manage_cap() && $aio_wp_security->is_login_lockdown_by_const() && $this->is_admin_page_to_display_disable_login_lockdown_by_const_notice()) {
 			add_action('all_admin_notices', array($this, 'disable_login_lockdown_by_const_notice'));
 		}
+
+		add_action('set_auth_cookie', array($this, 'handle_logged_in_user'), 10, 4);
+
+		//cron job to remove expired users from logged_in table
+		add_action('delete_expired_logged_in_users_event', array($this, 'delete_expired_logged_in_users'));
 	}
 
 	/**
@@ -327,18 +332,34 @@ class AIOWPSecurity_User_Login {
 		$release_time = $date->format('Y-m-d H:i:s');
 		$backtrace_log = '';
 		if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_php_backtrace_in_email')) {
-			$backtrace_log = print_r(debug_backtrace(), true);
+			$backtrace_log = AIOWPSecurity_Utility::normalise_call_stack_args(debug_backtrace());
+			$backtrace_log = print_r($backtrace_log, true);
 		}
 		$is_lockout_email_sent = (1 == $aio_wp_security->configs->get_value('aiowps_enable_email_notify') ? 0 : -1);
-		$data = array('user_id' => $user_id, 'user_login' => $username, 'lockdown_date' => $lock_time, 'release_date' => $release_time, 'failed_login_IP' => $ip, 'lock_reason' => $lock_reason, 'is_lockout_email_sent' => $is_lockout_email_sent, 'backtrace_log' => $backtrace_log);
-		$format = array('%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s');
+		$ip_lookup_result = AIOS_Helper::get_ip_reverse_lookup($ip);
+		$ip_lookup_result = json_encode($ip_lookup_result);
+
+		$data = array(
+			'user_id' => $user_id,
+			'user_login' => $username,
+			'lockdown_date' => $lock_time,
+			'release_date' => $release_time,
+			'failed_login_IP' => $ip,
+			'lock_reason' => $lock_reason,
+			'is_lockout_email_sent' => $is_lockout_email_sent,
+			'backtrace_log' => $backtrace_log,
+			'ip_lookup_result' => $ip_lookup_result
+		);
+
+		$format = array('%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s');
+
 		$result = $wpdb->insert($login_lockdown_table, $data, $format);
 
 		if (false === $result) {
-			$aio_wp_security->debug_logger->log_debug("Error inserting record into ".$login_lockdown_table, 4);//Log the highly unlikely event of DB error
+			$aio_wp_security->debug_logger->log_debug("Error inserting record into ".$login_lockdown_table, 4);
 		} else {
 			do_action('aiowps_lockdown_event', $ip_range, $username);
-			$aio_wp_security->debug_logger->log_debug("The following IP address range has been locked out for exceeding the maximum login attempts: ".$ip_range, 2);//Log the lockdown event
+			$aio_wp_security->debug_logger->log_debug("The following IP address range has been locked out for exceeding the maximum login attempts: ".$ip_range, 2);
 		}
 	}
 
@@ -364,10 +385,17 @@ class AIOWPSecurity_User_Login {
 				$email_msg = __('User login lockout events had occurred due to too many failed login attempts or invalid username:', 'all-in-one-wp-security-and-firewall')."\n\n";
 			
 				foreach ($lockout_ips_list as $lockout_ip) {
-					$email_msg .= __('Username:', 'all-in-one-wp-security-and-firewall') . ' ' . $lockout_ip['username'] . "\n";
-					$email_msg .= __('IP address:', 'all-in-one-wp-security-and-firewall') . ' ' . $lockout_ip['ip'] . "\n";
+					$email_msg .= sprintf(__('Username: %s', 'all-in-one-wp-security-and-firewall'), $lockout_ip['username']) . "\n";
+					$email_msg .= sprintf(__('IP address: %s', 'all-in-one-wp-security-and-firewall'), $lockout_ip['ip']) . "\n";
 					if ('' != $lockout_ip['ip_range']) {
-						$email_msg .= __('IP range:', 'all-in-one-wp-security-and-firewall') . ' ' . $lockout_ip['ip_range'] . '.*' . "\n";
+						$email_msg .= sprintf(__('IP range: %s', 'all-in-one-wp-security-and-firewall'), $lockout_ip['ip_range']) . '.*' . "\n";
+					}
+					if (!empty($lockout_ip['ip_lookup_result'])) {
+						$ip_lookup_result = json_decode($lockout_ip['ip_lookup_result'], true);
+						$email_msg .= sprintf(__('Org: %s', 'all-in-one-wp-security-and-firewall'), $ip_lookup_result['org']) . "\n";
+						$email_msg .= sprintf(__('AS: %s', 'all-in-one-wp-security-and-firewall'), $ip_lookup_result['as']) . "\n";
+
+						$email_msg = apply_filters('aiowps_login_lockdown_email_message', $email_msg, $ip_lookup_result);
 					}
 					$email_msg .= "\n";
 				}
@@ -540,7 +568,7 @@ class AIOWPSecurity_User_Login {
 	}
 
 	/**
-	 * Updates the audit log, the last login time in user meta, the login activity table and the users online transient.
+	 * Updates the last login time in user meta, the login activity table.
 	 *
 	 * @global wpdb $wpdb
 	 * @global AIO_WP_Security $aio_wp_security
@@ -555,7 +583,6 @@ class AIOWPSecurity_User_Login {
 		$login_date_time = current_time('mysql', true);
 
 		update_user_meta($user->ID, 'aiowps_last_login_time', $login_date_time); //store last login time in meta table
-		self::update_users_online_transient($user->ID);
 	}
 
 	public static function wp_login_action_handler($user_login, $user = '') {
@@ -592,7 +619,6 @@ class AIOWPSecurity_User_Login {
 		} else {
 			$user_primary_site = get_active_blog_for_user($user->ID);
 			switch_to_blog($user_primary_site->blog_id);
-
 			self::update_login_activity($user_login, $user);
 
 			restore_current_blog();
@@ -607,107 +633,12 @@ class AIOWPSecurity_User_Login {
 	 */
 	public function wp_logout_action_handler() {
 		$current_user = wp_get_current_user();
-		$ip_addr = AIOWPSecurity_Utility_IP::get_user_ip_address();
 		$user_id = $current_user->ID;
-		//Clean up transients table
-		$this->cleanup_users_online_transient($user_id, $ip_addr);
+		// delete from logged in users table
+		$this->delete_logged_in_user($user_id);
 		// TODO: log a logout event in the audit log
 	}
 
-	/**
-	 * Update the 'users_online' transient
-	 *
-	 * @param string $current_user logged user id
-	 * @return void
-	 */
-	public static function update_users_online_transient($current_user) {
-		$is_multi_site = is_multisite();
-		$current_user_ip = AIOWPSecurity_Utility_IP::get_user_ip_address();
-		// get the logged in users list from transients entry
-		$logged_in_users = ($is_multi_site ? get_site_transient('users_online') : get_transient('users_online'));
-		$current_time = current_time('timestamp');
-		$current_user_info = array();
-
-		// Store last activity time and ip address in transient entry
-		if ($is_multi_site) {
-			$current_blog_id = get_current_blog_id();
-			// For multi-sites also store blog_id
-			$current_user_info = array("user_id" => $current_user, "last_activity" => $current_time, "ip_address" => $current_user_ip, "blog_id" => $current_blog_id);
-		} else {
-			$current_user_info = array("user_id" => $current_user, "last_activity" => $current_time, "ip_address" => $current_user_ip, "blog_id" => false);
-		}
-
-		if (empty($logged_in_users)) {
-			// case when "users_online" transient has been deleted after expiry or is empty
-			$logged_in_users = array();
-			$logged_in_users[] = $current_user_info;
-			$is_multi_site ? set_site_transient('users_online', $logged_in_users, 30 * 60) : set_transient('users_online', $logged_in_users, 30 * 60);
-		} else {
-			$update_existing = false;
-			$item_index = 0;
-			foreach ($logged_in_users as $key => $value) {
-				$value_minus_activity = $value;
-				unset($value_minus_activity['last_activity']);
-				$current_user_minus_activity = $current_user_info;
-				unset($current_user_minus_activity['last_activity']);
-				// Check if current user we're looking at has an entry in the 'users_online' transient
-				if (empty(array_diff($current_user_minus_activity, $value_minus_activity))) {
-					if ($value['last_activity'] < ($current_time - (15 * 60))) {
-						$update_existing = true;
-						$item_index = $key;
-						break;
-					} else {
-						return; // do nothing and just return
-					}
-				}
-			}
-
-			if ($update_existing) {
-				// Update transient if the last activity was over 15 min ago for this user
-				$logged_in_users[$item_index] = $current_user_info;
-				is_multisite() ? set_site_transient('users_online', $logged_in_users, 30 * 60) : set_transient('users_online', $logged_in_users, 30 * 60);
-			} else {
-				$logged_in_users[] = $current_user_info;
-				is_multisite() ? set_site_transient('users_online', $logged_in_users, 30 * 60) : set_transient('users_online', $logged_in_users, 30 * 60);
-			}
-		}
-	}
-
-	/**
-	 * This will clean up the "users_online" transient entry for the current user when a logout occurs
-	 *
-	 * @param int $user_id
-	 * @param int $ip_addr
-	 * @return void
-	 */
-	public function cleanup_users_online_transient($user_id, $ip_addr) {
-		$is_multi_site = is_multisite();
-		if ($is_multi_site) {
-			$current_blog_id = get_current_blog_id();
-			$logged_in_users = AIOWPSecurity_User_Login::get_subsite_logged_in_users($current_blog_id);
-		} else {
-			$logged_in_users = get_transient('users_online');
-		}
-
-		if (empty($logged_in_users)) {
-			return;
-		}
-		
-		foreach ($logged_in_users as $key => $value) {
-			if ($value['user_id'] == $user_id && strcmp($value['ip_address'], $ip_addr) == 0) {
-				unset($logged_in_users[$key]);
-				break;
-			}
-		}
-
-		// Save the transient
-		if ($is_multi_site) {
-			set_site_transient('users_online', $logged_in_users, 30 * 60);
-		} else {
-			set_transient('users_online', $logged_in_users, 30 * 60);
-		}
-		return;
-	}
 
 	/**
 	 * The handler for the WP "login_message" filter
@@ -768,29 +699,25 @@ class AIOWPSecurity_User_Login {
 
 	/**
 	 * Returns all logged in users for specific subsite of multisite installation.
-	 * Checks the AIOS transient 'users_online'.
 	 *
-	 * @param type $blog_id
-	 * @return array|bool
+	 * @param bool $sitewide - checks if logged in users should be fetched sitewide
+	 *
+	 * @return array
 	 */
-	public static function get_subsite_logged_in_users($blog_id = 0) {
-		if (empty($blog_id)) return false;
+	public static function get_logged_in_users($sitewide = true) {
+		global $wpdb;
 
-		$subsite_logged_in_users = array();
-		if (is_multisite()) {
-			// this contains all logged in users sitewide across subsites
-			$users_online = get_site_transient('users_online');
-			if (empty($users_online)) {
-				return array();
-			}
-			// Extract only logged in users for current subsite
-			foreach ($users_online as $user) {
-				if (isset($user['blog_id']) && $user['blog_id'] == $blog_id) {
-					$subsite_logged_in_users[] = $user;
-				}
-			}
+		$logged_in_users_table = AIOWSPEC_TBL_LOGGED_IN_USERS;
+		if ($sitewide) {
+			$users_online = $wpdb->get_results("SELECT * FROM `{$logged_in_users_table}`", 'ARRAY_A');
+		} else {
+			$current_blog_id = get_current_blog_id();
+			$users_online = $wpdb->get_results($wpdb->prepare("SELECT * FROM `{$logged_in_users_table}` WHERE site_id = %d", $current_blog_id), 'ARRAY_A');
 		}
-		return $subsite_logged_in_users;
+
+		if (empty($users_online)) return array();
+
+		return $users_online;
 	}
 
 	/**
@@ -806,7 +733,7 @@ class AIOWPSecurity_User_Login {
 			return;
 		}
 		// get recent lockout records on top to notify
-		$sql = $wpdb->prepare('SELECT id, user_login, failed_login_ip, backtrace_log FROM ' .AIOWPSEC_TBL_LOGIN_LOCKOUT. ' WHERE is_lockout_email_sent = %d ORDER BY id DESC', 0);
+		$sql = $wpdb->prepare('SELECT id, user_login, failed_login_ip, backtrace_log, ip_lookup_result FROM ' .AIOWPSEC_TBL_LOGIN_LOCKOUT. ' WHERE is_lockout_email_sent = %d ORDER BY id DESC', 0);
 		$result = $wpdb->get_results($sql);
 		if (empty($result)) {
 			return;
@@ -817,7 +744,7 @@ class AIOWPSecurity_User_Login {
 		$backtrace_filepath = '';
 		foreach ($result as $row) {
 			$ip_range = AIOWPSecurity_Utility_IP::get_sanitized_ip_range($row->failed_login_ip);
-			$lockout_ips_list[] = array('username' => $row->user_login, 'ip' => $row->failed_login_ip, 'ip_range' => $ip_range);
+			$lockout_ips_list[] = array('username' => $row->user_login, 'ip' => $row->failed_login_ip, 'ip_range' => $ip_range, 'ip_lookup_result' => $row->ip_lookup_result);
 			$login_lockout_ids_send_emails[] = $row->id;
 			if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_php_backtrace_in_email') && '' != $row->backtrace_log) {
 				$lockout_ips_backtrace_log[] = array('backtrace_log' => $row->backtrace_log);
@@ -844,6 +771,140 @@ class AIOWPSecurity_User_Login {
 				$error_msg = empty($wpdb->last_error) ? 'Could not receive the reason for the failure' : $wpdb->last_error;
 				$aio_wp_security->debug_logger->log_debug_cron("Lockout email flag is not updated in database due to error: {$error_msg}", 4);
 			}
+		}
+	}
+
+	/**
+	 * Stores logged-in user in the logged_in_user table
+	 *
+	 * @param int $user_id    - id of user logging in
+	 * @param int $expiration - expiration timestamp of cookie
+	 *
+	 * @return void
+	 */
+	public function store_logged_in_user($user_id, $expiration) {
+		global $wpdb, $aio_wp_security;
+
+		$logged_in_users_table = AIOWSPEC_TBL_LOGGED_IN_USERS;
+		$ip_address = AIOWPSecurity_Utility_IP::get_user_ip_address();
+		$userdata = get_userdata($user_id);
+		$username = $userdata->user_login;
+		$login_time = time();
+
+		// Check if a record with the given user_id already exists
+		$existing_record = $wpdb->get_row(
+			$wpdb->prepare("SELECT * FROM " . $logged_in_users_table . " WHERE user_id = %d", $user_id)
+		);
+
+		if ($existing_record) {
+			// Update the existing record
+			$result = $wpdb->update(
+				$logged_in_users_table,
+				array(
+					'ip_address' => $ip_address,
+					'site_id' => get_current_blog_id(),
+					'username' => $username,
+					'expires' => $expiration
+				),
+				array('user_id' => $user_id)
+			);
+		} else {
+			// Create a new record
+			$result = $wpdb->insert(
+				$logged_in_users_table,
+				array(
+					'user_id' => $user_id,
+					'ip_address' => $ip_address,
+					'expires' => $expiration,
+					'site_id' => get_current_blog_id(),
+					'username' => $username,
+					'created' => $login_time
+				)
+			);
+		}
+
+		if (false === $result) {
+			$generic_error_message = $existing_record ? "Error updating record in " . $logged_in_users_table : "Error inserting record into ".$logged_in_users_table;
+			$error_message = empty($wpdb->last_error) ? $generic_error_message : $wpdb->last_error;
+			$aio_wp_security->debug_logger->log_debug($error_message, 4);
+		}
+	}
+
+	/**
+	 * Handles the data coming from the 'set_auth_cookie' hook
+	 *
+	 * @param string $auth_cookie - the generated auth_cookie
+	 * @param int    $expire      - expiration timestamp of cookie if remember is marked
+	 * @param int    $expiration  - expiration timestamp of cookie
+	 * @param int    $user_id     - id of user logging in
+	 *
+	 * @return void
+	 */
+	public function handle_logged_in_user($auth_cookie, $expire, $expiration, $user_id) {
+
+		if (empty($auth_cookie)) return; //check if auth cookie is empty, meaning login was not successful
+		$expiration = $expire > 0 ? $expire : $expiration;
+
+		if (is_multisite() && !is_super_admin()) {
+			$user_blog = get_active_blog_for_user($user_id);
+			switch_to_blog($user_blog->blog_id); // switch to user blog incase they try to log in from wrong subsite
+
+			$this->store_logged_in_user($user_id, $expiration);
+			restore_current_blog();
+		} else {
+			$this->store_logged_in_user($user_id, $expiration);
+		}
+	}
+
+	/**
+	 * Deletes logged-in user from the logged_in_user table
+	 *
+	 * @param int $user_id
+	 * @return void
+	 */
+	public function delete_logged_in_user($user_id) {
+		global $wpdb, $aio_wp_security;
+
+		$logged_in_users_table = AIOWSPEC_TBL_LOGGED_IN_USERS;
+
+		$existing_record = $wpdb->get_row(
+			$wpdb->prepare("SELECT * FROM `{$logged_in_users_table}` WHERE user_id = %d", $user_id)
+		);
+
+		if (!$existing_record) return;
+
+		// Delete the record
+		$result = $wpdb->delete(
+			$logged_in_users_table,
+			array('user_id' => $user_id)
+		);
+
+		if (false === $result) {
+			$error_message = empty($wpdb->last_error) ? "Error deleting record from ".$logged_in_users_table : $wpdb->last_error;
+			$aio_wp_security->debug_logger->log_debug($error_message, 4);
+		}
+	}
+
+	/**
+	 * Cron job function for removing data with expired session from the logged-in user table
+	 *
+	 * @return void
+	 */
+	public function delete_expired_logged_in_users() {
+		global $wpdb, $aio_wp_security;
+		$logged_in_users_table = AIOWSPEC_TBL_LOGGED_IN_USERS;
+
+		// Delete data with expired cookie
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM " . $logged_in_users_table . " WHERE expires < %d",
+				time()
+			)
+		);
+
+		if (false === $result) {
+			$error_message = empty($wpdb->last_error) ? "Error deleting records from ".$logged_in_users_table : $wpdb->last_error;
+			$aio_wp_security->debug_logger->log_debug($error_message, 4);
 		}
 	}
 }

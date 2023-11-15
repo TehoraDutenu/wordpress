@@ -91,29 +91,12 @@ class AIOWPSecurity_Admin_Init {
 				'order' => 30,
 			),
 			array(
-				'page_title' => __('User Accounts', 'all-in-one-wp-security-and-firewall'),
-				'menu_title' => __('User Accounts', 'all-in-one-wp-security-and-firewall'),
-				'menu_slug' => AIOWPSEC_USER_ACCOUNTS_MENU_SLUG,
-				'render_callback' => array($this, 'handle_user_accounts_menu_rendering'),
-				'icon' => 'user_accounts',
+				'page_title' => __('User Security', 'all-in-one-wp-security-and-firewall'),
+				'menu_title' => __('User Security', 'all-in-one-wp-security-and-firewall'),
+				'menu_slug' => AIOWPSEC_USER_SECURITY_MENU_SLUG,
+				'render_callback' => array($this, 'handle_user_security_menu_rendering'),
+				'icon' => 'user_security',
 				'order' => 40,
-			),
-			array(
-				'page_title' => __('User Login', 'all-in-one-wp-security-and-firewall'),
-				'menu_title' => __('User Login', 'all-in-one-wp-security-and-firewall'),
-				'menu_slug' => AIOWPSEC_USER_LOGIN_MENU_SLUG,
-				'render_callback' => array($this, 'handle_user_login_menu_rendering'),
-				'icon' => 'user_login',
-				'order' => 50,
-			),
-			array(
-				'page_title' => __('User Registration', 'all-in-one-wp-security-and-firewall'),
-				'menu_title' => __('User Registration', 'all-in-one-wp-security-and-firewall'),
-				'menu_slug' => AIOWPSEC_USER_REGISTRATION_MENU_SLUG,
-				'render_callback' => array($this, 'handle_user_registration_menu_rendering'),
-				'icon' => 'user_registration',
-				'display_condition_callback' => 'is_main_site',
-				'order' => 60,
 			),
 			array(
 				'page_title' => __('Database Security', 'all-in-one-wp-security-and-firewall'),
@@ -122,7 +105,7 @@ class AIOWPSecurity_Admin_Init {
 				'render_callback' => array($this, 'handle_database_menu_rendering'),
 				'icon' => 'database_security',
 				'display_condition_callback' => 'is_super_admin',
-				'order' => 70,
+				'order' => 50,
 			),
 			array(
 				'page_title' => __('Filesystem Security', 'all-in-one-wp-security-and-firewall'),
@@ -131,7 +114,7 @@ class AIOWPSecurity_Admin_Init {
 				'render_callback' => array($this, 'handle_filesystem_menu_rendering'),
 				'icon' => 'filesystem_security',
 				'display_condition_callback' => array('AIOWPSecurity_Utility_Permissions', 'is_main_site_and_super_admin'),
-				'order' => 80,
+				'order' => 60,
 			),
 			array(
 				'page_title' => __('Blacklist Manager', 'all-in-one-wp-security-and-firewall'),
@@ -140,7 +123,7 @@ class AIOWPSecurity_Admin_Init {
 				'render_callback' => array($this, 'handle_blacklist_menu_rendering'),
 				'icon' => 'blacklist_manager',
 				'display_condition_callback' => array('AIOWPSecurity_Utility_Permissions', 'is_main_site_and_super_admin'),
-				'order' => 90,
+				'order' => 70,
 			),
 			array(
 				'page_title' => __('Firewall', 'all-in-one-wp-security-and-firewall'),
@@ -149,7 +132,7 @@ class AIOWPSecurity_Admin_Init {
 				'render_callback' => array($this, 'handle_firewall_menu_rendering'),
 				'icon' => 'firewall',
 				'display_condition_callback' => array('AIOWPSecurity_Utility_Permissions', 'is_main_site_and_super_admin'),
-				'order' => 100,
+				'order' => 80,
 			),
 			array(
 				'page_title' => __('Brute Force', 'all-in-one-wp-security-and-firewall'),
@@ -157,7 +140,7 @@ class AIOWPSecurity_Admin_Init {
 				'menu_slug' => AIOWPSEC_BRUTE_FORCE_MENU_SLUG,
 				'render_callback' => array($this, 'handle_brute_force_menu_rendering'),
 				'icon' => 'brute_force',
-				'order' => 110,
+				'order' => 90,
 			),
 			array(
 				'page_title' => __('Spam Prevention', 'all-in-one-wp-security-and-firewall'),
@@ -165,7 +148,7 @@ class AIOWPSecurity_Admin_Init {
 				'menu_slug' => AIOWPSEC_SPAM_MENU_SLUG,
 				'render_callback' => array($this, 'handle_spam_menu_rendering'),
 				'icon' => 'spam_prevention',
-				'order' => 120,
+				'order' => 100,
 			),
 			array(
 				'page_title' => __('Scanner', 'all-in-one-wp-security-and-firewall'),
@@ -174,15 +157,7 @@ class AIOWPSecurity_Admin_Init {
 				'render_callback' => array($this, 'handle_filescan_menu_rendering'),
 				'icon' => 'scanner',
 				'display_condition_callback' => array('AIOWPSecurity_Utility_Permissions', 'is_main_site_and_super_admin'),
-				'order' => 130,
-			),
-			array(
-				'page_title' => __('Maintenance', 'all-in-one-wp-security-and-firewall'),
-				'menu_title' => __('Maintenance', 'all-in-one-wp-security-and-firewall'),
-				'menu_slug' => AIOWPSEC_MAINTENANCE_MENU_SLUG,
-				'render_callback' => array($this, 'handle_maintenance_menu_rendering'),
-				'icon' => 'maintenance',
-				'order' => 140,
+				'order' => 110,
 			),
 			array(
 				'page_title' => __('Miscellaneous', 'all-in-one-wp-security-and-firewall'),
@@ -190,7 +165,7 @@ class AIOWPSecurity_Admin_Init {
 				'menu_slug' => AIOWPSEC_MISC_MENU_SLUG,
 				'render_callback' => array($this, 'handle_misc_menu_rendering'),
 				'icon' => 'miscellaneous',
-				'order' => 140,
+				'order' => 120,
 			),
 			array(
 				'page_title' => __('Tools', 'all-in-one-wp-security-and-firewall'),
@@ -198,7 +173,7 @@ class AIOWPSecurity_Admin_Init {
 				'menu_slug' => AIOWPSEC_TOOLS_MENU_SLUG,
 				'render_callback' => array($this, 'handle_tools_menu_rendering'),
 				'icon' => 'tools',
-				'order' => 150,
+				'order' => 130,
 			),
 		);
 		$menu_items = apply_filters('aiowpsecurity_menu_items', $menu_items);
@@ -409,7 +384,8 @@ class AIOWPSecurity_Admin_Init {
 			array(
 				'unexpected_response' => __('Unexpected response:', 'all-in-one-wp-security-and-firewall'),
 				'copied' => __('Copied', 'all-in-one-wp-security-and-firewall'),
-				'no_import_file' => __('You have not yet selected a file to import.', 'all-in-one-wp-security-and-firewall')
+				'no_import_file' => __('You have not yet selected a file to import.', 'all-in-one-wp-security-and-firewall'),
+				'processing' => __('Processing...', 'all-in-one-wp-security-and-firewall')
 			)
 		);
 		wp_register_script('aiowpsec-pw-tool-js', AIO_WP_SECURITY_URL. '/js/password-strength-tool.js', array('jquery')); // We will enqueue this in the user acct menu class
@@ -604,35 +580,15 @@ class AIOWPSecurity_Admin_Init {
 		new AIOWPSecurity_Settings_Menu();
 		
 	}
-	
+
 	/**
-	 * Renders 'User Accounts' submenu page.
+	 * Renders 'User Security' submenu page.
 	 *
 	 * @return Void
 	 */
-	public function handle_user_accounts_menu_rendering() {
-		include_once('wp-security-user-accounts-menu.php');
-		new AIOWPSecurity_User_Accounts_Menu();
-	}
-	
-	/**
-	 * Renders 'User Login' submenu page.
-	 *
-	 * @return Void
-	 */
-	public function handle_user_login_menu_rendering() {
-		include_once('wp-security-user-login-menu.php');
-		new AIOWPSecurity_User_Login_Menu();
-	}
-	
-	/**
-	 * Renders 'User Registration' submenu page.
-	 *
-	 * @return Void
-	 */
-	public function handle_user_registration_menu_rendering() {
-		include_once('wp-security-user-registration-menu.php');
-		new AIOWPSecurity_User_Registration_Menu();
+	public function handle_user_security_menu_rendering() {
+		include_once('wp-security-user-security-menu.php');
+		new AIOWPSecurity_User_Security_Menu();
 	}
 
 	/**
@@ -683,16 +639,6 @@ class AIOWPSecurity_Admin_Init {
 	public function handle_brute_force_menu_rendering() {
 		include_once('wp-security-brute-force-menu.php');
 		new AIOWPSecurity_Brute_Force_Menu();
-	}
-
-	/**
-	 * Renders 'Maintenance' submenu page.
-	 *
-	 * @return Void
-	 */
-	public function handle_maintenance_menu_rendering() {
-		include_once('wp-security-maintenance-menu.php');
-		new AIOWPSecurity_Maintenance_Menu();
 	}
 	
 	/**

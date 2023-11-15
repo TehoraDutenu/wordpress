@@ -25,8 +25,9 @@
 				<tr valign="top">
 					<th scope="row"><?php _e('Disallow unauthorized REST requests', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-						<input id="aiowps_disallow_unauthorized_rest_requests" name="aiowps_disallow_unauthorized_rest_requests" type="checkbox"<?php if ('1' == $aio_wp_security->configs->get_value('aiowps_disallow_unauthorized_rest_requests')) echo ' checked="checked"'; ?> value="1"/>
-						<label for="aiowps_disallow_unauthorized_rest_requests" class="description"><?php _e('Check this if you want to stop REST API access for non-logged in requests.', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to stop REST API access for non-logged in requests.', 'all-in-one-wp-security-and-firewall'), 'aiowps_disallow_unauthorized_rest_requests', '1' == $aio_wp_security->configs->get_value('aiowps_disallow_unauthorized_rest_requests')); ?>
+						</div>
 					</td>
 				</tr>
 			</table>

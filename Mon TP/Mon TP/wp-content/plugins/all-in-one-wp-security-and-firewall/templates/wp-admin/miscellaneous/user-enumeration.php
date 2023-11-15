@@ -10,7 +10,7 @@
 			<?php wp_nonce_field('aiowpsec-users-enumeration'); ?>
 			<div class="aio_blue_box">
 				<?php
-					echo '<p>'.__('This feature allows you to prevent external users/bots from fetching the user info with urls like "/?author=1".', 'all-in-one-wp-security-and-firewall').'</p>';
+					echo '<p>'.sprintf(__('This feature allows you to prevent external users/bots from fetching the user info with URLs like "%s", "%s", oEmbed request.', 'all-in-one-wp-security-and-firewall'), '/?author=1', '/'.rest_get_url_prefix().'/wp/v2/users').'</p>';
 					echo '<p>'.__('When enabled, this feature will print a "forbidden" error rather than the user information.', 'all-in-one-wp-security-and-firewall').'</p>';
 				?>
 			</div>
@@ -18,8 +18,9 @@
 				<tr valign="top">
 					<th scope="row"><?php _e('Disable users enumeration', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-						<input id="aiowps_prevent_users_enumeration" name="aiowps_prevent_users_enumeration" type="checkbox"<?php if ('1' == $aio_wp_security->configs->get_value('aiowps_prevent_users_enumeration')) echo ' checked="checked"'; ?> value="1"/>
-						<label for="aiowps_prevent_users_enumeration" class="description"><?php _e('Check this if you want to stop users enumeration.', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to stop users enumeration.', 'all-in-one-wp-security-and-firewall'), 'aiowps_prevent_users_enumeration', '1' == $aio_wp_security->configs->get_value('aiowps_prevent_users_enumeration')); ?>
+						</div>
 					</td>
 				</tr>
 			</table>

@@ -125,25 +125,17 @@ class AIOWPSecurity_Blacklist_Menu extends AIOWPSecurity_Admin_Menu {
 	 */
 	private function validate_user_agent_list($banned_user_agents) {
 		global $aio_wp_security, $aiowps_firewall_config;
-		@ini_set('auto_detect_line_endings', true);
-		$submitted_agents = explode("\n", $banned_user_agents);
-		$agents = array();
-		if (!empty($submitted_agents)) {
-			foreach ($submitted_agents as $agent) {
-				if (!empty($agent)) {
-					$text = sanitize_text_field($agent);
-					$agents[] = $text;
-				}
-			}
-		}
-
-		if (sizeof($agents) > 1) {
-			sort( $agents );
-			$agents = array_unique($agents, SORT_STRING);
-		}
-
-		$banned_user_agent_data = implode("\n", $agents);
-		$aio_wp_security->configs->set_value('aiowps_banned_user_agents', $banned_user_agent_data);
+		$submitted_agents = AIOWPSecurity_Utility::splitby_newline_trim_filter_empty($banned_user_agents);
+		$agents = array_unique(
+					array_filter(
+						array_map(
+							'sanitize_text_field',
+							$submitted_agents
+						),
+						'strlen'
+					)
+				);
+		$aio_wp_security->configs->set_value('aiowps_banned_user_agents', implode("\n", $agents));
 		$aiowps_firewall_config->set_value('aiowps_blacklist_user_agents', $agents);
 		$_POST['aiowps_banned_user_agents'] = ''; // Clear the post variable for the banned address list
 		return 1;

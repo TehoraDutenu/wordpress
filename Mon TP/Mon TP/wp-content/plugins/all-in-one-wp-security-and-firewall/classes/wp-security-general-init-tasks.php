@@ -96,8 +96,10 @@ class AIOWPSecurity_General_Init_Tasks {
 			}
 		}
 		// Stop users enumeration feature
-		if ($aio_wp_security->configs->get_value('aiowps_prevent_users_enumeration') == 1) {
+		if (1 == $aio_wp_security->configs->get_value('aiowps_prevent_users_enumeration')) {
 			include_once(AIO_WP_SECURITY_PATH.'/other-includes/wp-security-stop-users-enumeration.php');
+			add_filter('rest_request_before_callbacks', array($this, 'rest_request_before_callbacks'), 10, 1);
+			add_filter('oembed_response_data', array($this, 'oembed_response_data'), 10, 1);
 		}
 
 		// REST API security
@@ -287,6 +289,12 @@ class AIOWPSecurity_General_Init_Tasks {
 		if ($aio_wp_security->configs->get_value('aiowps_enable_404_logging') == '1') {
 			add_action('wp_head', array($this, 'check_404_event'));
 		}
+		
+		//for anitbot post page set cookies
+		if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_spambot_detecting')) {
+			add_action('template_redirect', array($this, 'post_antibot_cookie'));
+		}
+		
 		// Add more tasks that need to be executed at init time
 
 	} // end _construct()
@@ -319,8 +327,8 @@ class AIOWPSecurity_General_Init_Tasks {
 	 * @return void
 	 */
 	public function spam_detecting_and_process_comments_discard($comment_post_id) {
-		$is_comment_shoud_not_allowed = AIOWPSecurity_Comment::is_comment_spam_detected();
-		if ($is_comment_shoud_not_allowed) {
+		$is_comment_should_not_allowed = AIOWPSecurity_Comment::is_comment_spam_detected();
+		if ($is_comment_should_not_allowed) {
 			$this->spam_discard_auto_block_ip();
 			$comments = get_comments(array('number' => '1', 'post_id' => $comment_post_id));
 			if ($comments) {
@@ -407,9 +415,17 @@ class AIOWPSecurity_General_Init_Tasks {
 		return '';
 	}
 
+	/**
+	 * This function removes wp meta info from style and script src
+	 *
+	 * @param string|null $src - the src for the style or script
+	 * @return string
+	 */
 	public function remove_wp_css_js_meta_info($src) {
 		global $wp_version;
 		static $wp_version_hash = null; // Cache hash value for all function calls
+
+		if (empty($src)) return '';
 
 		// Replace only version number of assets with WP version
 		if (strpos($src, 'ver=' . $wp_version) !== false) {
@@ -476,8 +492,8 @@ class AIOWPSecurity_General_Init_Tasks {
 			$disabled_message .= '<th>'.__('Disabled').'</th>';
 			$disabled_message .= '<td>'.htmlspecialchars(__('Application passwords have been disabled by All In One WP Security & Firewall plugin.', 'all-in-one-wp-security-and-firewall'));
 			if (AIOWPSecurity_Utility_Permissions::has_manage_cap()) {
-				$aiowps_addtional_setting_url = 'admin.php?page=aiowpsec_userlogin&tab=additional';
-				$change_setting_url = is_multisite() ? network_admin_url($aiowps_addtional_setting_url) : admin_url($aiowps_addtional_setting_url);
+				$aiowps_additional_setting_url = 'admin.php?page=aiowpsec_userlogin&tab=additional';
+				$change_setting_url = is_multisite() ? network_admin_url($aiowps_additional_setting_url) : admin_url($aiowps_additional_setting_url);
 				$disabled_message .= '<p><a href="'.$change_setting_url.'"  class="button">'.__('Change setting', 'all-in-one-wp-security-and-firewall').'</a></p>';
 			} else {
 				$disabled_message .= ' '.__('Site admin can only change this setting.', 'all-in-one-wp-security-and-firewall');
@@ -707,5 +723,54 @@ class AIOWPSecurity_General_Init_Tasks {
 		$firewall_setup = AIOWPSecurity_Firewall_Setup_Notice::get_instance();
 		$firewall_setup->start_firewall_setup();
 
+	}
+	
+	/**
+	 * Called by the WP filter rest_request_before_callbacks
+	 *
+	 * @param WP_REST_Response $response
+	 *
+	 * @return WP_REST_Response|WP_Error $response
+	 */
+	public function rest_request_before_callbacks($response) {
+		$rest_route = !empty($_GET['rest_route']) ? $_GET['rest_route'] : (empty($_SERVER['REQUEST_URI']) ? '' : (string) parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH));
+		$rest_route = trim($rest_route, '/');
+		if ('' != $rest_route && !current_user_can('edit_others_posts')) {
+			if (preg_match('/wp\/v2\/users$/i', $rest_route)) {
+				$error = new WP_Error('aios_user_lists_forbidden', __('Listing users is forbidden.', 'all-in-one-wp-security-and-firewall'));
+				$response = rest_ensure_response($error);
+			} elseif (preg_match('/wp\/v2\/users\/+(\d+)$/i', $rest_route, $matches)) {
+				$id = empty($matches) ? 0 : (int) $matches[1];
+				if (get_current_user_id() !== $id) {
+					$error = new WP_Error('aios_user_details_forbidden', __('Accessing user details is forbidden.', 'all-in-one-wp-security-and-firewall'), array('status' => 403));
+					$response = rest_ensure_response($error);
+				}
+			}
+		}
+		return $response;
+	}
+	
+	/**
+	 *  Called by the WP filter oembed_response_data
+	 *
+	 * @param Array $data
+	 *
+	 * @return Array $data
+	 */
+	public function oembed_response_data($data) {
+		unset($data['author_name']);
+		unset($data['author_url']);
+		return $data;
+	}
+	
+	/**
+	 * Sets the antibot cookie for post page comment form
+	 *
+	 * @return void
+	 */
+	public function post_antibot_cookie() {
+		if (is_singular() || is_archive()) {
+			AIOWPSecurity_Comment::insert_antibot_keys_in_cookie();
+		}
 	}
 }

@@ -55,20 +55,15 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 	 * @return string - the html to be rendered
 	 */
 	public function column_created($item) {
-		$tab = strip_tags($_REQUEST['tab']);
-
-		$delete_url = sprintf('admin.php?page=%s&tab=%s&action=%s&id=%s', AIOWPSEC_MAIN_MENU_SLUG, $tab, 'delete_audit_log', $item['id']);
-		// Add nonce to delete URL
-		$delete_url_nonce = wp_nonce_url($delete_url, "delete_audit_log", "aiowps_nonce");
-
 		// Build row actions
 		$actions = array(
-			'delete' => '<a href="'.$delete_url_nonce.'" onclick="return confirm(\''.esc_js(__('Are you sure you want to delete this item?', 'all-in-one-wp-security-and-firewall')).'\')">'.__('Delete').'</a>',
+			'delete' => '<a class="aios-delete-audit-log" data-id="'.esc_attr($item['id']).'" data-message="'.esc_js(__('Are you sure you want to delete this item?', 'all-in-one-wp-security-and-firewall')).'"  href="" >'.__('Delete').'</a>',
 		);
-
 		// Return the user_login contents
+		$date_time = function_exists('wp_date') ? wp_date('Y-m-d H:i:s', $item['created']) : get_date_from_gmt(gmdate('Y-m-d H:i:s', $item['created']), 'Y-m-d H:i:s');
+		
 		return sprintf('%1$s <span style="color:silver"></span>%2$s',
-			/* $1%s */ date('Y-m-d H:i:s', $item['created']),
+			/* $1%s */ $date_time,
 			/* $2%s */ $this->row_actions($actions)
 		);
 	}
@@ -299,18 +294,19 @@ class AIOWPSecurity_List_Audit_Log extends AIOWPSecurity_List_Table {
 					return;
 				}
 			}
-		} elseif ($entries != NULL) {
+		} elseif (!empty($entries)) {
 			// Delete single record
 			$delete_command = "DELETE FROM " . $audit_log_tbl . " WHERE id = '" . absint($entries) . "'";
 			$result = $wpdb->query($delete_command);
 		}
 
 		if ($result) {
-			AIOWPSecurity_Admin_Menu::show_msg_record_deleted_st();
+			$response = AIOWPSecurity_Admin_Menu::show_msg_record_deleted_st(!is_array($entries));
 		} else {
 			$aio_wp_security->debug_logger->log_debug('Database error occurred when deleting rows from Audit log table. Database error: '.$wpdb->last_error, 4);
-			AIOWPSecurity_Admin_Menu::show_msg_record_not_deleted_st();
+			$response = AIOWPSecurity_Admin_Menu::show_msg_record_not_deleted_st(!is_array($entries));
 		}
+		if (!is_array($entries)) return $response;
 	}
 
 	/**

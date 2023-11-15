@@ -308,7 +308,7 @@ class AIOWPSecurity_Captcha {
 			$second_operand = $second_digit;
 		}
 
-		//Let's caluclate the result and construct the equation string
+		//Let's calculate the result and construct the equation string
 		if ('&#43;' === $operator) {
 			//Addition
 			$result = $first_digit+$second_digit;

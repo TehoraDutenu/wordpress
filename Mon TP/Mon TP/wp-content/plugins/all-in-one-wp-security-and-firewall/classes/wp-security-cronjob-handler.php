@@ -72,6 +72,7 @@ class AIOWPSecurity_Cronjob_Handler {
 		//Do stuff that needs checking hourly
 		AIOWPSecurity_Comment::trash_spam_comments();
 		do_action('aiowps_perform_fcd_scan_tasks');
+		do_action('delete_expired_logged_in_users_event');
 	}
 	
 	/**
@@ -83,6 +84,7 @@ class AIOWPSecurity_Cronjob_Handler {
 		do_action('aiowps_perform_db_cleanup_tasks');
 		do_action('aiowps_purge_old_debug_logs');
 		do_action('aiowps_send_lockout_email');
+		do_action('aios_perform_update_antibot_keys');
 	}
 
 	/**

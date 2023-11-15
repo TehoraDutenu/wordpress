@@ -18,8 +18,9 @@
 				<tr valign="top">
 					<th scope="row"><?php _e('Disable ability to edit PHP files', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-						<input id="aiowps_disable_file_editing" name="aiowps_disable_file_editing" type="checkbox"<?php if ('1' == $aio_wp_security->configs->get_value('aiowps_disable_file_editing')) echo ' checked="checked"'; ?> value="1"/>
-						<label for="aiowps_disable_file_editing" class="description"><?php _e('Check this if you want to remove the ability for people to edit PHP files via the WP dashboard', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to remove the ability for people to edit PHP files via the WP dashboard', 'all-in-one-wp-security-and-firewall'), 'aiowps_disable_file_editing', '1' == $aio_wp_security->configs->get_value('aiowps_disable_file_editing')); ?>
+						</div>
 					</td>
 				</tr>
 			</table>

@@ -310,7 +310,9 @@ class AIOWPSecurity_Brute_Force_Menu extends AIOWPSecurity_Admin_Menu {
 	protected function render_login_whitelist() {
 		global $aio_wp_security, $aiowps_feature_mgr;
 		$result = 0;
+		$ip_v4 = false;
 		$your_ip_address = AIOWPSecurity_Utility_IP::get_user_ip_address();
+		if (filter_var($your_ip_address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) $ip_v4 = true;
 		if (isset($_POST['aiowps_save_whitelist_settings'])) {
 			$nonce = $_POST['_wpnonce'];
 			if (!wp_verify_nonce($nonce, 'aiowpsec-whitelist-settings-nonce')) {
@@ -360,7 +362,7 @@ class AIOWPSecurity_Brute_Force_Menu extends AIOWPSecurity_Admin_Menu {
 		$aiowps_allowed_ip_addresses = isset($_POST['aiowps_allowed_ip_addresses']) ? wp_unslash($_POST['aiowps_allowed_ip_addresses']) : '';
 		$aiowps_allowed_ip_addresses = -1 == $result ? $aiowps_allowed_ip_addresses : $aio_wp_security->configs->get_value('aiowps_allowed_ip_addresses');
 
-		$aio_wp_security->include_template('wp-admin/brute-force/login-whitelist.php', false, array('aiowps_feature_mgr' => $aiowps_feature_mgr, 'your_ip_address' => $your_ip_address, 'aiowps_allowed_ip_addresses' => $aiowps_allowed_ip_addresses));
+		$aio_wp_security->include_template('wp-admin/brute-force/login-whitelist.php', false, array('aiowps_feature_mgr' => $aiowps_feature_mgr, 'your_ip_address' => $your_ip_address, 'ip_v4' => $ip_v4, 'aiowps_allowed_ip_addresses' => $aiowps_allowed_ip_addresses));
 	}
 
 	/**

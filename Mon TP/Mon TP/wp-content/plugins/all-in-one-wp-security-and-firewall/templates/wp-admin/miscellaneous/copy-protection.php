@@ -18,8 +18,9 @@
 				<tr valign="top">
 					<th scope="row"><?php _e('Enable copy protection', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-						<input id="aiowps_copy_protection" name="aiowps_copy_protection" type="checkbox"<?php if ('1' == $aio_wp_security->configs->get_value('aiowps_copy_protection')) echo ' checked="checked"'; ?> value="1"/>
-						<label for="aiowps_copy_protection" class="description"><?php echo __('Check this if you want to disable the "Right click", "Text selection" and "Copy" option on the front end of your site.', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to disable the "Right click", "Text selection" and "Copy" option on the front end of your site.', 'all-in-one-wp-security-and-firewall'), 'aiowps_copy_protection', '1' == $aio_wp_security->configs->get_value('aiowps_copy_protection')); ?>
+						</div>
 					</td>
 				</tr>
 			</table>

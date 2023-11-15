@@ -34,14 +34,6 @@ class AIOWPSecurity_Spam_Menu extends AIOWPSecurity_Admin_Menu {
 				'title' => __('Comment spam IP monitoring', 'all-in-one-wp-security-and-firewall'),
 				'render_callback' => array($this, 'render_comment_spam_ip_monitoring'),
 			),
-			'buddypress' => array(
-				'title' => __('BuddyPress', 'all-in-one-wp-security-and-firewall'),
-				'render_callback' => array($this, 'render_buddypress'),
-			),
-			'bbpress' => array(
-				'title' => __('bbPress', 'all-in-one-wp-security-and-firewall'),
-				'render_callback' => array($this, 'render_bbpress'),
-			),
 		);
 
 		$this->menu_tabs = array_filter($menu_tabs, array($this, 'should_display_tab'));
@@ -101,7 +93,6 @@ class AIOWPSecurity_Spam_Menu extends AIOWPSecurity_Admin_Menu {
 				$this->show_msg_error(__('Could not write to the .htaccess file. Please check the file permissions.', 'all-in-one-wp-security-and-firewall'));
 			}
 		}
-		$aio_wp_security->include_template('wp-admin/general/moved.php', false, array('key' => 'comment-captcha'));
 		$aio_wp_security->include_template('wp-admin/spam-prevention/comment-spam.php', false, array('aiowps_feature_mgr' => $aiowps_feature_mgr));
 	}
 
@@ -208,27 +199,5 @@ class AIOWPSecurity_Spam_Menu extends AIOWPSecurity_Admin_Menu {
 		$tab =  $_REQUEST['tab'];
 
 		$aio_wp_security->include_template('wp-admin/spam-prevention/comment-spam-ip-monitoring.php', false, array('spammer_ip_list' => $spammer_ip_list, 'aiowps_feature_mgr' => $aiowps_feature_mgr, 'block_comments_output' => $block_comments_output, 'page' => $page, 'tab' => $tab));
-	}
-
-	/**
-	 * Renders the submenu's BuddyPress tab body.
-	 *
-	 * @return Void
-	 */
-	protected function render_buddypress() {
-		global $aio_wp_security;
-
-		$aio_wp_security->include_template('wp-admin/general/moved.php', false, array('key' => 'buddypress-captcha'));
-	}
-
-	/**
-	 * Renders the submenu's bbPress tab body.
-	 *
-	 * @return Void
-	 */
-	protected function render_bbpress() {
-		global $aio_wp_security;
-
-		$aio_wp_security->include_template('wp-admin/general/moved.php', false, array('key' => 'bbpress-captcha'));
 	}
 } //end class

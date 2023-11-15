@@ -94,43 +94,69 @@ class AIOWPSecurity_Scan {
 		}
 	}
 	
+	/**
+	 * This function is called via the following filter 'aiowps_perform_fcd_scan_tasks' and will start the file scan
+	 *
+	 * @return void
+	 */
 	public function aiowps_scheduled_fcd_scan_handler() {
 		global $aio_wp_security;
-		if ($aio_wp_security->configs->get_value('aiowps_enable_automated_fcd_scan')=='1') {
-			$aio_wp_security->debug_logger->log_debug_cron(__METHOD__ . " - Scheduled fcd_scan is enabled. Checking now to see if scan needs to be done...");
-			$time_now = current_time('mysql');
-			$current_time = strtotime($time_now);
-			$fcd_scan_frequency = $aio_wp_security->configs->get_value('aiowps_fcd_scan_frequency'); //Number of hours or days or months interval
-			$interval_setting = $aio_wp_security->configs->get_value('aiowps_fcd_scan_interval'); //Hours/Days/Months
-			switch ($interval_setting) {
-				case '0':
-					$interval = 'hours';
-					break;
-				case '1':
-					$interval = 'days';
-					break;
-				case '2':
-					$interval = 'weeks';
-					break;
-			}
-			$last_fcd_scan_time_string = $aio_wp_security->configs->get_value('aiowps_last_fcd_scan_time');
-			if (null != $last_fcd_scan_time_string) {
-				$last_fcd_scan_time = strtotime($last_fcd_scan_time_string);
-				$next_fcd_scan_time = strtotime("+".abs($fcd_scan_frequency).$interval, $last_fcd_scan_time);
-				if ($next_fcd_scan_time <= $current_time) {
-					//It's time to do a filescan
-					$result = $this->execute_file_change_detection_scan();
-					if (false === $result) {
-						$aio_wp_security->debug_logger->log_debug(__METHOD__ . " - Scheduled filescan operation failed!", 4);
-					} else {
-						$aio_wp_security->configs->set_value('aiowps_last_fcd_scan_time', $time_now, true);
-					}
-				}
+		
+		if ('1' != $aio_wp_security->configs->get_value('aiowps_enable_automated_fcd_scan')) return;
+		
+		$aio_wp_security->debug_logger->log_debug_cron(__METHOD__ . " - Scheduled fcd_scan is enabled. Checking now to see if scan needs to be done...");
+		
+		$current_time = time();
+		
+		$next_fcd_scan_time = self::get_next_scheduled_scan();
+
+		if ($next_fcd_scan_time <= $current_time) {
+			// It's time to do a filescan
+			$result = $this->execute_file_change_detection_scan();
+			if (false === $result) {
+				$aio_wp_security->debug_logger->log_debug(__METHOD__ . " - Scheduled filescan operation failed.", 4);
 			} else {
-				//Set the last scan time to now so it can trigger for the next scheduled period
-				$aio_wp_security->configs->set_value('aiowps_last_fcd_scan_time', $time_now, true);
+				$aio_wp_security->configs->set_value('aiowps_last_fcd_scan_time', $current_time, true);
 			}
 		}
+
+	}
+
+	/**
+	 * This function will get the next scheduled scan timestamp and return it
+	 *
+	 * @return int|bool - the next scheduled scan timestamp, or false if the scheduled scan is not setup
+	 */
+	public static function get_next_scheduled_scan() {
+		global $aio_wp_security;
+
+		if ('1' != $aio_wp_security->configs->get_value('aiowps_enable_automated_fcd_scan')) return false;
+
+		$fcd_scan_frequency = $aio_wp_security->configs->get_value('aiowps_fcd_scan_frequency'); // Number of hours or days or months interval
+		$interval_setting = $aio_wp_security->configs->get_value('aiowps_fcd_scan_interval'); // Hours/Days/Months
+		switch ($interval_setting) {
+			case '0':
+				$interval = 'hours';
+				break;
+			case '1':
+				$interval = 'days';
+				break;
+			case '2':
+				$interval = 'weeks';
+				break;
+		}
+		$last_fcd_scan_time = $aio_wp_security->configs->get_value('aiowps_last_fcd_scan_time');
+		if (null == $last_fcd_scan_time) {
+			// Set the last scan time to now so it can trigger for the next scheduled period
+			$last_fcd_scan_time = time();
+			$aio_wp_security->configs->set_value('aiowps_last_fcd_scan_time', $last_fcd_scan_time, true);
+		} elseif (is_string($last_fcd_scan_time)) {
+			$last_fcd_scan_time = strtotime($last_fcd_scan_time);
+			$aio_wp_security->configs->set_value('aiowps_last_fcd_scan_time', $last_fcd_scan_time, true);
+		}
+		$next_fcd_scan_time = strtotime("+".abs($fcd_scan_frequency).$interval, $last_fcd_scan_time);
+
+		return $next_fcd_scan_time;
 	}
 	
 	/**

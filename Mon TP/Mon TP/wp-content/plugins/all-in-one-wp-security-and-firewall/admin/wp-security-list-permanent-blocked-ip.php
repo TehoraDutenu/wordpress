@@ -22,16 +22,16 @@ class AIOWPSecurity_List_Blocked_IP extends AIOWPSecurity_List_Table {
 		return $item[$column_name];
 	}
 
+	/**
+	 * Function to populate the permanent blocked ip actions column in the table
+	 *
+	 * @param array $item - Contains the current item data 
+	 *
+	 * @return string
+	 */
 	public function column_id($item) {
-		$tab = isset($_REQUEST['tab']) ? strip_tags($_REQUEST['tab']) : '';
-		//Add nonce to delete URL
-		$unblock_ip_url = sprintf('admin.php?page=%s&tab=%s&action=%s&blocked_id=%s', AIOWPSEC_MAIN_MENU_SLUG, $tab, 'unblock_ip', $item['id']);
-		//Add nonce to unlock IP URL
-		$unblock_ip_nonce = wp_nonce_url($unblock_ip_url, "unblock_ip", "aiowps_nonce");
-
-		//Build row actions
 		$actions = array(
-			'unblock' => '<a href="' . $unblock_ip_nonce . '" onclick="return confirm(\'Are you sure you want to unblock this IP address?\')">Unblock</a>',
+			'unblock' => '<a href="" class="aios-unblock-permanent-ip" data-id="'.esc_attr($item['id']).'" data-message="'.esc_js(__('Are you sure you want to unblock this IP address?', 'all-in-one-wp-security-and-firewall')).'">Unblock</a>',
 		);
 
 		//Return the user_login contents
@@ -120,21 +120,16 @@ class AIOWPSecurity_List_Blocked_IP extends AIOWPSecurity_List_Table {
 					AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Failed to unblock and delete the selected record(s).', 'all-in-one-wp-security-and-firewall'));
 				}
 			}
-		} elseif ($entries != NULL) {
-			$nonce = isset($_GET['aiowps_nonce']) ? $_GET['aiowps_nonce'] : '';
-			if (!isset($nonce) || !wp_verify_nonce($nonce, 'unblock_ip')) {
-				$aio_wp_security->debug_logger->log_debug("Nonce check failed for unblock IP operation!", 4);
-				die(__('Nonce check failed for unblock IP operation!', 'all-in-one-wp-security-and-firewall'));
-			}
+		} elseif (!empty($entries)) {
 			//Delete single record
 			$delete_command = "DELETE FROM " . AIOWPSEC_TBL_PERM_BLOCK . " WHERE id = '" . absint($entries) . "'";
 			$result = $wpdb->query($delete_command);
 			if ($result) {
-				AIOWPSecurity_Admin_Menu::show_msg_updated_st(__('Successfully unblocked and deleted the selected record(s).', 'all-in-one-wp-security-and-firewall'));
+				return AIOWPSecurity_Admin_Menu::show_msg_updated_st(__('Successfully unblocked and deleted the selected record(s).', 'all-in-one-wp-security-and-firewall'), true);
 			} elseif ($result === false) {
 				// Error on single delete
 				$aio_wp_security->debug_logger->log_debug('Database error occurred when deleting rows from Perm Block table. Database error: '.$wpdb->last_error, 4);
-				AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Failed to unblock and delete the selected record(s).', 'all-in-one-wp-security-and-firewall'));
+				return AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Failed to unblock and delete the selected record(s).', 'all-in-one-wp-security-and-firewall'), true);
 			}
 		}
 	}

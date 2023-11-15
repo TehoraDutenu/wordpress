@@ -2,7 +2,12 @@
 <h2><?php _e('Login whitelist', 'all-in-one-wp-security-and-firewall'); ?></h2>
 <div class="aio_blue_box">
 	<?php
-		echo '<p>' . __('The All In One WP Security Whitelist feature gives you the option of only allowing certain IP addresses or ranges to have access to your WordPress login page.', 'all-in-one-wp-security-and-firewall') . '<br>' . __('This feature will deny login access for all IP addresses which are not in your whitelist as configured in the settings below.', 'all-in-one-wp-security-and-firewall') . '<br>' . __('By allowing/blocking IP addresses, you are using the most secure first line of defence because login access will only be granted to whitelisted IP addresses and other addresses will be blocked as soon as they try to access your login page.', 'all-in-one-wp-security-and-firewall') . '</p>';
+		echo '<p>' . __('The All In One WP Security Whitelist feature gives you the option of only allowing certain IP addresses or ranges to have access to your WordPress login page.', 'all-in-one-wp-security-and-firewall') . '<br>' . __('This feature will deny login access for all IP addresses which are not in your whitelist as configured in the settings below.', 'all-in-one-wp-security-and-firewall') . '<br>' . __('By allowing/blocking IP addresses, you are using the most secure first line of defence because login access will only be granted to whitelisted IP addresses and other addresses will be blocked as soon as they try to access your login page.', 'all-in-one-wp-security-and-firewall') .'</p>';
+	?>
+</div>
+<div class="aio_grey_box">
+	<?php
+		echo '<p>' . sprintf(__('If you are locked out by the login whitelist feature and you do not have a static IP address, define the following constant %s in wp-config.php to disable the feature.', 'all-in-one-wp-security-and-firewall'), '<strong>define(\'AIOS_DISABLE_LOGIN_WHITELIST\', true);</strong>') . '</p>';
 	?>
 </div>
 <div class="aio_yellow_box">
@@ -30,15 +35,20 @@
 				<tr valign="top">
 					<th scope="row"><?php _e('Enable IP whitelisting', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-					<input id="aiowps_enable_whitelisting" name="aiowps_enable_whitelisting" type="checkbox"<?php if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_whitelisting')) echo ' checked="checked"'; ?> value="1"/>
-					<label for="aiowps_enable_whitelisting" class="description"><?php _e('Check this if you want to enable the whitelisting of selected IP addresses specified in the settings below', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to enable the whitelisting of selected IP addresses specified in the settings below', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_whitelisting', '1' == $aio_wp_security->configs->get_value('aiowps_enable_whitelisting')); ?>
+						</div>
 					</td>
 				</tr>
 				<tr valign="top">
 					<th scope="row"><label for="aiowps_user_ip"><?php _e('Your current IP address', 'all-in-one-wp-security-and-firewall'); ?>:</label></th>
 					<td>
 					<input id="aiowps_user_ip" class="copy-to-clipboard" size="40" name="aiowps_user_ip" type="text" value="<?php echo esc_attr($your_ip_address); ?>" readonly>
-					<span class="description"><?php _e('You can copy and paste this address in the text box below if you want to include it in your login whitelist.', 'all-in-one-wp-security-and-firewall'); ?></span>
+					<br />
+					<span id="aios-ipify-ip-address"></span>
+					<input id="aios_user_ip_maybe_also" class="copy-to-clipboard aio_hidden" size="40" name="aios_user_ip_maybe_also" type="text" value=""  ip_maybe="<?php echo (true == $ip_v4) ? 'v6' : 'v4'; ?>" getting_text="<?php _e('getting...', 'all-in-one-wp-security-and-firewall'); ?>" readonly>
+					<br />
+					<span class="description"><?php _e('You can copy and paste the above address(es) in the text box below if you want to include it in your login whitelist.', 'all-in-one-wp-security-and-firewall'); ?></span>
 					</td>
 				</tr>
 				<tr valign="top">

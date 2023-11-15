@@ -11,7 +11,7 @@ class AIOWPSecurity_Utility_File {
 	public $files_and_dirs_to_check;
 
 	public function __construct() {
-		 // Let's initiliaze our class variable array with all of the files and/or directories we wish to check permissions for.
+		 // Let's initialize our class variable array with all of the files and/or directories we wish to check permissions for.
 		 // NOTE: we can add to this list in future if we wish
 
 		//Get wp-config.php file path
@@ -257,7 +257,7 @@ class AIOWPSecurity_Utility_File {
 
 	public static function download_content_to_a_file($output, $file_name = '') {
 		if (empty($file_name)) {
-			$file_name = "aiowps_" . date("Y-m-d_H-i", time()).".txt";
+			$file_name = 'aiowps_' . current_time('Y-m-d_H-i') . '.txt';
 		}
 
 		header("Content-Encoding: UTF-8");
@@ -396,7 +396,7 @@ class AIOWPSecurity_Utility_File {
 	public static function create_dir($dirpath = '') {
 		$res = true;
 		if ('' != $dirpath) {
-			//TODO - maybe add some checks to make sure someone is not passing a path with a filename, ie, something which has ".<extenstion>" at the end
+			//TODO - maybe add some checks to make sure someone is not passing a path with a filename, ie, something which has ".<extension>" at the end
 			//$path_parts = pathinfo($dirpath);
 			//$dirpath = $path_parts['dirname'] . '/' . $path_parts['basename'];
 			if (!file_exists($dirpath)) {

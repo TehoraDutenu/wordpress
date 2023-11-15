@@ -53,7 +53,7 @@ class AIOWPSecurity_Blocking {
 	}
 
 	/**
-	 * Will add an IP address to the permament block list
+	 * Will add an IP address to the permanent block list
 	 *
 	 * @param int    $ip_address
 	 * @param string $reason

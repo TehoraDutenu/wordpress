@@ -90,16 +90,6 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		$tab = isset($_REQUEST["tab"]) ? $_REQUEST["tab"] : '';
 		$page = $_REQUEST['page'];
 
-		if (isset($_REQUEST['action'])) { // Do list table form row action tasks
-			if ($_REQUEST['action'] == 'delete_blocked_ip') { // Delete link was clicked for a row in list table
-				$locked_ip_list->delete_lockout_records(strip_tags($_REQUEST['lockout_id']));
-			}
-
-			if ('unlock_ip' == $_REQUEST['action']) { // Unlock link was clicked for a row in list table
-				$locked_ip_list->unlock_ip_range(strip_tags($_REQUEST['lockout_id']));
-			}
-		}
-
 		$aio_wp_security->include_template('wp-admin/dashboard/locked-ip.php', false, array('locked_ip_list' => $locked_ip_list, 'page' => $page, 'tab' => $tab));
 	}
 
@@ -114,12 +104,6 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		$blocked_ip_list = new AIOWPSecurity_List_Blocked_IP(); // For rendering the AIOWPSecurity_List_Table
 		$tab = isset($_REQUEST["tab"]) ? $_REQUEST["tab"] : '';
 		$page = $_REQUEST['page'];
-
-		if (isset($_REQUEST['action'])) { // Do list table form row action tasks
-			if ($_REQUEST['action'] == 'unblock_ip') { // Unblock link was clicked for a row in list table
-				$blocked_ip_list->unblock_ip_address(strip_tags($_REQUEST['blocked_id']));
-			}
-		}
 
 		$aio_wp_security->include_template('wp-admin/dashboard/permanent-block.php', false, array('blocked_ip_list' => $blocked_ip_list, 'page' => $page, 'tab' => $tab));	}
 
@@ -137,18 +121,6 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		$tab = isset($_REQUEST["tab"]) ? $_REQUEST["tab"] : '';
 		$page = $_REQUEST['page'];
 
-		if (isset($_REQUEST['action'])) { // Do list table form row action tasks
-			if ('delete_audit_log' == $_REQUEST['action']) { // Delete link was clicked for a row in list table
-				$nonce = isset($_REQUEST['aiowps_nonce']) ? $_REQUEST['aiowps_nonce'] : '';
-			
-				if (!isset($nonce) || !wp_verify_nonce($nonce, 'delete_audit_log')) {
-					$aio_wp_security->debug_logger->log_debug("Nonce check failed for delete selected Audit event logs operation.", 4);
-					die(__('Nonce check failed for delete selected Audit event logs operation.','all-in-one-wp-security-and-firewall'));
-				}
-				$audit_log_list->delete_audit_event_records(absint($_REQUEST['id']));
-			}
-		}
-
 		$aio_wp_security->include_template('wp-admin/dashboard/audit-logs.php', false, array('audit_log_list' => $audit_log_list, 'page' => $page, 'tab' => $tab));	}
 
 	/**
@@ -160,51 +132,7 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		// Needed for rendering the debug log table
 		include_once 'wp-security-list-debug.php'; 
 		$debug_log_list = new AIOWPSecurity_List_Debug_Log();
-
-		global $wpdb, $aio_wp_security;
-
-		// Handles clearing the debug logs
-		if (isset($_POST['aiowpsec_clear_logs']) && isset($_POST['_wpnonce'])) {
-
-			if (wp_verify_nonce($_POST['_wpnonce'], 'aiowpsec_clear_debug_logs')) {
-
-				$ret = $aio_wp_security->debug_logger->clear_logs();
-
-				if (is_wp_error($ret)) {
-
-				 ?>
-
-					<div class="notice notice-error is-dismissible">
-						<p><strong><?php echo htmlspecialchars(__('All In One WP Security & Firewall', 'all-in-one-wp-security-and-firewall')); ?></strong></p>
-						<p><?php echo esc_html($ret->get_error_message());  ?></p>
-						<p><?php echo esc_html($ret->get_error_data());  ?></p>
-					</div>
-
-					<?php
-
-				} else {
-
-					?>
-					<div class="notice notice-success is-dismissible">
-						<p><strong><?php echo htmlspecialchars(__('All In One WP Security & Firewall', 'all-in-one-wp-security-and-firewall')); ?></strong></p>
-						<p><?php _e( 'Debug logs have been cleared.', 'all-in-one-wp-security-and-firewall' ); ?></p>
-					</div>
-					<?php
-
-				}
-
-			} else {
-				?>
-
-					<div class="notice notice-error is-dismissible">
-						<p><strong><?php echo htmlspecialchars(__('All In One WP Security & Firewall', 'all-in-one-wp-security-and-firewall')); ?></strong></p>
-						<p><?php _e( 'Unable to clear the logs; an invalid nonce was provided', 'all-in-one-wp-security-and-firewall' ); ?></p>
-					</div>
-
-				<?php
-			}
-
-		}
+		global $aio_wp_security;
 		$aio_wp_security->include_template('wp-admin/dashboard/debug-logs.php', false, array('debug_log_list' => $debug_log_list));
 	}
 
@@ -387,6 +315,11 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		<?php
 	}
 
+	/**
+	 * This outputs the critical feature status widget
+	 *
+	 * @return void
+	 */
 	public function widget_critical_feature_status() {
 		global $aiowps_feature_mgr, $aio_wp_security;
 		$feature_mgr = $aiowps_feature_mgr;
@@ -396,7 +329,7 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		$username_admin_feature = $aiowps_feature_mgr->get_feature_item_by_id("user-accounts-change-admin-user");
 		echo '<div class="aiowps_feature_status_container">';
 		echo '<div class="aiowps_feature_status_name">' . __('Admin username', 'all-in-one-wp-security-and-firewall') . '</div>';
-		echo '<a href="admin.php?page=' . AIOWPSEC_USER_ACCOUNTS_MENU_SLUG . '">';
+		echo '<a href="admin.php?page=' . AIOWPSEC_USER_SECURITY_MENU_SLUG . '">';
 		echo '<div class="aiowps_feature_status_bar">';
 		if ($username_admin_feature->is_active()) {
 			echo '<div class="aiowps_feature_status_label aiowps_feature_status_on">On</div>';
@@ -411,7 +344,7 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		$login_lockdown_feature = $aiowps_feature_mgr->get_feature_item_by_id("user-login-login-lockdown");
 		echo '<div class="aiowps_feature_status_container">';
 		echo '<div class="aiowps_feature_status_name">' . __('Login lockout', 'all-in-one-wp-security-and-firewall') . '</div>';
-		echo '<a href="admin.php?page=' . AIOWPSEC_USER_LOGIN_MENU_SLUG . '">';
+		echo '<a href="admin.php?page=' . AIOWPSEC_USER_SECURITY_MENU_SLUG . '">';
 		echo '<div class="aiowps_feature_status_bar">';
 		if ($login_lockdown_feature->is_active()) {
 			echo '<div class="aiowps_feature_status_label aiowps_feature_status_on">On</div>';
@@ -510,7 +443,7 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 
 		echo '<div class="aiowps_feature_status_container">';
 		echo '<div class="aiowps_feature_status_name">' . __('Maintenance mode', 'all-in-one-wp-security-and-firewall') . '</div>';
-		echo '<a href="admin.php?page=' . AIOWPSEC_MAINTENANCE_MENU_SLUG . '">';
+		echo '<a href="admin.php?page=' . AIOWPSEC_TOOLS_MENU_SLUG . '&tab=visitor-lockout">';
 		echo '<div class="aiowps_feature_status_bar">';
 		if ($aio_wp_security->configs->get_value('aiowps_site_lockout') == '1') { // Maintenance mode is enabled
 			echo '<div class="aiowps_feature_status_label aiowps_feature_status_off">On</div>'; // If enabled show red by usign the "off" class
@@ -556,28 +489,34 @@ class AIOWPSecurity_Dashboard_Menu extends AIOWPSecurity_Admin_Menu {
 		} // End if statement for Rename Login box
 	}
 
+	/**
+	 * This outputs the logged in users dashboard widget
+	 *
+	 * @return void
+	 */
 	public function widget_logged_in_users() {
-		$users_online_link = '<a href="admin.php?page=' . AIOWPSEC_USER_LOGIN_MENU_SLUG . '&tab=logged-in-users">'.__('Logged in users', 'all-in-one-wp-security-and-firewall').'</a>';
+		$users_online_link = '<a href="admin.php?page=' . AIOWPSEC_USER_SECURITY_MENU_SLUG . '&tab=logged-in-users">'.__('Logged in users', 'all-in-one-wp-security-and-firewall').'</a>';
 		// default display messages
 		$multiple_users_info_msg = __('Number of users currently logged into your site (including you) is:', 'all-in-one-wp-security-and-firewall');
 		$single_user_info_msg = __('There are no other users currently logged in.', 'all-in-one-wp-security-and-firewall');
+
 		if (is_multisite()) {
 			$current_blog_id = get_current_blog_id();
 			$is_main = is_main_site($current_blog_id);
 
-			if(empty($is_main)) {
-				// subsite - only get logged in users for this blog_id
-				$logged_in_users = AIOWPSecurity_User_Login::get_subsite_logged_in_users($current_blog_id);
+			if (empty($is_main)) {
+				// Subsite - only get logged in users for this blog_id
+				$logged_in_users = AIOWPSecurity_User_Login::get_logged_in_users(false);
 			} else {
-				// main site - get sitewide users
-				$logged_in_users = get_site_transient('users_online');
+				// Main site - get sitewide users
+				$logged_in_users = AIOWPSecurity_User_Login::get_logged_in_users();
 
-				// If viewing AIOS from multisite main network dashboard then display a different message
+				// If viewing AIOS from multisite main network dashboard, then display a different message
 				$multiple_users_info_msg = __('Number of users currently logged in site-wide (including you) is:', 'all-in-one-wp-security-and-firewall');
 				$single_user_info_msg = __('There are no other site-wide users currently logged in.', 'all-in-one-wp-security-and-firewall');
 			}
 		} else {
-			$logged_in_users = get_transient('users_online');
+			$logged_in_users = AIOWPSecurity_User_Login::get_logged_in_users();
 		}
 
 		if (empty($logged_in_users)) {

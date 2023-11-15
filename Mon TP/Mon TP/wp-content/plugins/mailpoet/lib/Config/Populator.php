@@ -10,12 +10,14 @@ use MailPoet\Cron\Workers\AuthorizedSendingEmailsCheck;
 use MailPoet\Cron\Workers\BackfillEngagementData;
 use MailPoet\Cron\Workers\Beamer;
 use MailPoet\Cron\Workers\InactiveSubscribers;
+use MailPoet\Cron\Workers\Mixpanel;
 use MailPoet\Cron\Workers\NewsletterTemplateThumbnails;
 use MailPoet\Cron\Workers\StatsNotifications\Worker;
 use MailPoet\Cron\Workers\SubscriberLinkTokens;
 use MailPoet\Cron\Workers\SubscribersLastEngagement;
 use MailPoet\Cron\Workers\UnsubscribeTokens;
 use MailPoet\Entities\NewsletterEntity;
+use MailPoet\Entities\NewsletterOptionFieldEntity;
 use MailPoet\Entities\ScheduledTaskEntity;
 use MailPoet\Entities\SegmentEntity;
 use MailPoet\Entities\StatisticsFormEntity;
@@ -185,6 +187,7 @@ class Populator {
     $this->scheduleSubscriberLastEngagementDetection();
     $this->scheduleNewsletterTemplateThumbnails();
     $this->scheduleBackfillEngagementData();
+    $this->scheduleMixpanel();
   }
 
   private function createMailPoetPage() {
@@ -493,6 +496,18 @@ class Populator {
         'name' => 'automationStepId',
         'newsletter_type' => NewsletterEntity::TYPE_AUTOMATION,
       ],
+      [
+        'name' => NewsletterOptionFieldEntity::NAME_FILTER_SEGMENT_ID,
+        'newsletter_type' => NewsletterEntity::TYPE_STANDARD,
+      ],
+      [
+        'name' => NewsletterOptionFieldEntity::NAME_FILTER_SEGMENT_ID,
+        'newsletter_type' => NewsletterEntity::TYPE_RE_ENGAGEMENT,
+      ],
+      [
+        'name' => NewsletterOptionFieldEntity::NAME_FILTER_SEGMENT_ID,
+        'newsletter_type' => NewsletterEntity::TYPE_NOTIFICATION,
+      ],
     ];
 
     return [
@@ -669,6 +684,10 @@ class Populator {
       SubscriberLinkTokens::TASK_TYPE,
       Carbon::createFromTimestamp($this->wp->currentTime('timestamp'))
     );
+  }
+
+  private function scheduleMixpanel() {
+    $this->scheduleTask(Mixpanel::TASK_TYPE, Carbon::createFromTimestamp($this->wp->currentTime('timestamp')));
   }
 
   private function scheduleTask($type, $datetime, $priority = null) {

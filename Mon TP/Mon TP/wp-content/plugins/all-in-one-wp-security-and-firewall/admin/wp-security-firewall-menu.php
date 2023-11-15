@@ -42,17 +42,9 @@ class AIOWPSecurity_Firewall_Menu extends AIOWPSecurity_Admin_Menu {
 				'title' => __('Internet bots', 'all-in-one-wp-security-and-firewall'),
 				'render_callback' => array($this, 'render_internet_bots'),
 			),
-			'prevent-hotlinks' => array(
-				'title' => __('Prevent hotlinks', 'all-in-one-wp-security-and-firewall'),
-				'render_callback' => array($this, 'render_prevent_hotlinks'),
-			),
 			'404-detection' => array(
 				'title' => __('404 detection', 'all-in-one-wp-security-and-firewall'),
 				'render_callback' => array($this, 'render_404_detection'),
-			),
-			'custom-rules' => array(
-				'title' => __('Custom rules', 'all-in-one-wp-security-and-firewall'),
-				'render_callback' => array($this, 'render_custom_rules'),
 			),
 			'advanced-settings' => array(
 				'title' => __('Advanced settings', 'all-in-one-wp-security-and-firewall'),
@@ -318,6 +310,8 @@ class AIOWPSecurity_Firewall_Menu extends AIOWPSecurity_Admin_Menu {
 	protected function render_internet_bots() {
 		global $aiowps_feature_mgr;
 		global $aio_wp_security;
+		global $aiowps_firewall_config;
+
 		if(isset($_POST['aiowps_save_internet_bot_settings'])) { // Do form submission tasks
 			$nonce = $_POST['_wpnonce'];
 			if (!wp_verify_nonce($nonce, 'aiowpsec-save-internet-bot-settings-nonce')) {
@@ -332,6 +326,8 @@ class AIOWPSecurity_Firewall_Menu extends AIOWPSecurity_Admin_Menu {
 				$aio_wp_security->configs->set_value('aiowps_block_fake_googlebots', '');
 			}
 
+			$aiowps_firewall_config->set_value('aiowps_ban_post_blank_headers', isset($_POST['aiowps_ban_post_blank_headers']));
+
 			//Commit the config settings
 			$aio_wp_security->configs->save_config();
 
@@ -342,16 +338,6 @@ class AIOWPSecurity_Firewall_Menu extends AIOWPSecurity_Admin_Menu {
 		}
 
 		$aio_wp_security->include_template('wp-admin/firewall/internet-bots.php');
-	}
-
-	/**
-	 * Renders the Prevent Hotlinks tab
-	 *
-	 * @return void
-	 */
-	protected function render_prevent_hotlinks() {
-		global $aio_wp_security;
-		$aio_wp_security->include_template('wp-admin/general/moved.php', false, array('key' => 'prevent-hotlinks'));
 	}
 
 	/**
@@ -440,16 +426,6 @@ class AIOWPSecurity_Firewall_Menu extends AIOWPSecurity_Admin_Menu {
 		$page = $_REQUEST['page'];
 		$tab = isset($_REQUEST["tab"]) ? $_REQUEST["tab"] : '';
 		$aio_wp_security->include_template('wp-admin/firewall/404-detection.php', false, array('event_list_404' => $event_list_404, 'page' => $page, 'tab' => $tab));
-	}
-
-	/**
-	 * Renders the Custom Rules tab
-	 *
-	 * @return void
-	 */
-	protected function render_custom_rules() {
-		global $aio_wp_security;
-		$aio_wp_security->include_template('wp-admin/general/moved.php', false, array('key' => 'custom-rules'));
 	}
 
 	/**

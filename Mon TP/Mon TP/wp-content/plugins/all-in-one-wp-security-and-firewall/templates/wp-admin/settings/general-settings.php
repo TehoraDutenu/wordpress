@@ -108,8 +108,9 @@ if (!is_super_admin()) {
 				<tr valign="top">
 					<th scope="row"><?php _e('Enable debug', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-						<input id="aiowps_enable_debug" name="aiowps_enable_debug" type="checkbox"<?php if ($aio_wp_security->configs->get_value('aiowps_enable_debug')=='1') echo ' checked="checked"'; ?> value="1"/>
-						<label for="aiowps_enable_debug" class="description"><?php _e('Check this if you want to enable debug. You should keep this option disabled after you have finished debugging the issue.', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to enable debug.', 'all-in-one-wp-security-and-firewall') . ' ' . __('You should keep this option disabled after you have finished debugging the issue.', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_debug', '1' == $aio_wp_security->configs->get_value('aiowps_enable_debug')); ?>
+						</div>
 					</td>
 				</tr>
 			</table>

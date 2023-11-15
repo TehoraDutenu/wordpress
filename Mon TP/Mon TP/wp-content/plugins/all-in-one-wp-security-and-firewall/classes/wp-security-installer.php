@@ -8,6 +8,9 @@ class AIOWPSecurity_Installer {
 	private static $db_tasks = array(
 		'2.0.2' => array(
 			'clean_audit_log_stacktraces',
+		),
+		'2.0.7' => array(
+			'add_ip_lookup_result_field_to_ip_lockout_table',
 		)
 	);
 
@@ -89,6 +92,7 @@ class AIOWPSecurity_Installer {
 		$message_store_log_tbl_name = AIOWPSEC_TBL_MESSAGE_STORE;
 		$audit_log_tbl_name = AIOWPSEC_TBL_AUDIT_LOG;
 		$debug_log_tbl_name = AIOWPSEC_TBL_DEBUG_LOG;
+		$logged_in_users_tbl_name = AIOWSPEC_TBL_LOGGED_IN_USERS;
 
 		$charset_collate = '';
 		if (!empty($wpdb->charset)) {
@@ -183,13 +187,32 @@ class AIOWPSecurity_Installer {
 
 		$debug_log_tbl_sql = "CREATE TABLE " . $debug_log_tbl_name . " (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
+			created datetime NOT NULL DEFAULT '1000-10-10 10:00:00',
 			level varchar(25) NOT NULL DEFAULT '',
+			network_id bigint(20) NOT NULL DEFAULT '0',
+			site_id bigint(20) NOT NULL DEFAULT '0',
 			message text NOT NULL DEFAULT '',
 			type varchar(25) NOT NULL DEFAULT '',
-			created datetime NOT NULL DEFAULT '1000-10-10 10:00:00',
 			PRIMARY KEY  (id)
 			)" . $charset_collate . ";";
 		dbDelta($debug_log_tbl_sql);
+
+		$liu_tbl_sql = "CREATE TABLE " . $logged_in_users_tbl_name . " (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			user_id bigint(20) NOT NULL,
+			username varchar(60) NOT NULL DEFAULT '',
+			ip_address varchar(45) NOT NULL DEFAULT '',
+			site_id bigint(20) NOT NULL,
+			created integer UNSIGNED,
+			expires integer UNSIGNED,
+			PRIMARY KEY (id),
+			UNIQUE KEY unique_user_id (user_id),
+			INDEX created (created),
+			INDEX expires (expires),
+			INDEX user_id (user_id),
+			INDEX site_id (site_id)
+			) " . $charset_collate . ";";
+		dbDelta($liu_tbl_sql);
 
 		$message_store_log_tbl_sql = "CREATE TABLE " . $message_store_log_tbl_name . " (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -271,6 +294,55 @@ class AIOWPSecurity_Installer {
 		global $wpdb;
 		$wpdb->query("UPDATE ".AIOWPSEC_TBL_AUDIT_LOG." SET stacktrace = '' WHERE event_type = 'failed_login' OR event_type = 'successful_login' OR event_type = 'user_registration'");
 	}
+
+	/**
+	 * This function will add the ip result lookup column to the login lockdown table
+	 *
+	 * @return void
+	 */
+	public static function add_ip_lookup_result_field_to_ip_lockout_table() {
+		global $wpdb;
+
+		$column_name = 'ip_lookup_result';
+		if (is_multisite()) {
+			$blogids = $wpdb->get_col("SELECT blog_id FROM $wpdb->blogs");
+			foreach ($blogids as $blog_id) {
+				switch_to_blog($blog_id);
+				$login_lockdown_table = $wpdb->prefix.'aiowps_login_lockdown';
+				self::add_column_to_table($column_name, $login_lockdown_table);
+				restore_current_blog();
+			}
+		} else {
+			$login_lockdown_table = AIOWPSEC_TBL_LOGIN_LOCKOUT;
+			self::add_column_to_table($column_name, $login_lockdown_table);
+		}
+
+	}
+
+	/**
+	 * This function adds a column to a specified table
+	 *
+	 * @param string $column_name - This is the column being added to the table
+	 * @param string $table_name  - This is the table name we are adding the column to
+	 *
+	 * @return void
+	 */
+	public static function add_column_to_table($column_name, $table_name) {
+		global $wpdb, $aio_wp_security;
+
+		// Check if the column already exists
+		$column_exists = $wpdb->get_var("SHOW COLUMNS FROM $table_name LIKE '$column_name'");
+
+		if (!$column_exists) {
+			// Add the new column to the table
+			$result = $wpdb->query("ALTER TABLE `{$table_name}` ADD COLUMN `$column_name` LONGTEXT DEFAULT NULL");
+			if (false === $result) {
+				$error_message = empty($wpdb->last_error) ? "Error creating column $column_name in $table_name" : $wpdb->last_error;
+				$aio_wp_security->debug_logger->log_debug($error_message, 4);
+			}
+		}
+	}
+
 
 	public static function create_db_backup_dir() {
 		global $aio_wp_security;

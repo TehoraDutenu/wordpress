@@ -218,10 +218,17 @@ class SubscriberEntity {
    */
   private $subscriberTags;
 
+  /**
+   * @ORM\OneToMany(targetEntity="MailPoet\Entities\ScheduledTaskSubscriberEntity", mappedBy="subscriber", orphanRemoval=true)
+   * @var Collection<int, ScheduledTaskSubscriberEntity>
+   */
+  private $scheduledTaskSubscribers;
+
   public function __construct() {
     $this->subscriberSegments = new ArrayCollection();
     $this->subscriberCustomFields = new ArrayCollection();
     $this->subscriberTags = new ArrayCollection();
+    $this->scheduledTaskSubscribers = new ArrayCollection();
   }
 
   /**
@@ -481,7 +488,7 @@ class SubscriberEntity {
   public function getSubscriberSegments(?string $status = null) {
     if (!is_null($status)) {
       $criteria = Criteria::create()
-        ->where(Criteria::expr()->eq('status', SubscriberEntity::STATUS_SUBSCRIBED));
+        ->where(Criteria::expr()->eq('status', $status));
       $subscriberSegments = $this->subscriberSegments->matching($criteria);
     } else {
       $subscriberSegments = $this->subscriberSegments;

@@ -16,8 +16,9 @@
 				<tr valign="top">
 					<th scope="row"><?php _e('Prevent access to WP default install files', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-					<input id="aiowps_prevent_default_wp_file_access" name="aiowps_prevent_default_wp_file_access" type="checkbox"<?php if ('1' == $aio_wp_security->configs->get_value('aiowps_prevent_default_wp_file_access')) echo ' checked="checked"'; ?> value="1"/>
-					<label for="aiowps_prevent_default_wp_file_access" class="description"><?php _e('Check this if you want to prevent access to readme.html, license.txt and wp-config-sample.php.', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to prevent access to readme.html, license.txt and wp-config-sample.php.', 'all-in-one-wp-security-and-firewall'), 'aiowps_prevent_default_wp_file_access', '1' == $aio_wp_security->configs->get_value('aiowps_prevent_default_wp_file_access')); ?>
+						</div>
 					</td>
 				</tr>
 			</table>

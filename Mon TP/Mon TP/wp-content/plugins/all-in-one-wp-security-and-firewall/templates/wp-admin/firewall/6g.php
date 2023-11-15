@@ -24,37 +24,39 @@
 			<tr valign="top">
 				<th scope="row"><?php _e('Enable 6G firewall protection', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 				<td>
-				<input id="aiowps_enable_6g_firewall" name="aiowps_enable_6g_firewall" type="checkbox"<?php if ($aio_wp_security->configs->get_value('aiowps_enable_6g_firewall')=='1') echo ' checked="checked"'; ?> value="1"/>
-				<label for="aiowps_enable_6g_firewall" class="description"><?php _e('Check this if you want to apply the 6G Blacklist firewall protection from perishablepress.com to your site.', 'all-in-one-wp-security-and-firewall'); ?></label>
-				<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
-				<div class="aiowps_more_info_body">
-						<?php
-						echo '<p class="description">'.__('This setting will implement the 6G security firewall protection mechanisms on your site which include the following things:', 'all-in-one-wp-security-and-firewall').'</p>';
-						echo '<p class="description">'.__('1) Block forbidden characters commonly used in exploitative attacks.', 'all-in-one-wp-security-and-firewall').'</p>';
-						echo '<p class="description">'.__('2) Block malicious encoded URL characters such as the ".css(" string.', 'all-in-one-wp-security-and-firewall').'</p>';
-						echo '<p class="description">'.__('3) Guard against the common patterns and specific exploits in the root portion of targeted URLs.', 'all-in-one-wp-security-and-firewall').'</p>';
-						echo '<p class="description">'.__('4) Stop attackers from manipulating query strings by disallowing illicit characters.', 'all-in-one-wp-security-and-firewall').'</p>';
-						echo '<p class="description">'.__('....and much more.', 'all-in-one-wp-security-and-firewall').'</p>';
-						?>
-				</div>
+					<div class="aiowps_switch_container">
+						<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to apply the 6G Blacklist firewall protection from perishablepress.com to your site.', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_6g_firewall', '1' == $aio_wp_security->configs->get_value('aiowps_enable_6g_firewall')); ?>
+						<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
+						<div class="aiowps_more_info_body">
+								<?php
+								echo '<p class="description">'.__('This setting will implement the 6G security firewall protection mechanisms on your site which include the following things:', 'all-in-one-wp-security-and-firewall').'</p>';
+								echo '<p class="description">'.__('1) Block forbidden characters commonly used in exploitative attacks.', 'all-in-one-wp-security-and-firewall').'</p>';
+								echo '<p class="description">'.__('2) Block malicious encoded URL characters such as the ".css(" string.', 'all-in-one-wp-security-and-firewall').'</p>';
+								echo '<p class="description">'.__('3) Guard against the common patterns and specific exploits in the root portion of targeted URLs.', 'all-in-one-wp-security-and-firewall').'</p>';
+								echo '<p class="description">'.__('4) Stop attackers from manipulating query strings by disallowing illicit characters.', 'all-in-one-wp-security-and-firewall').'</p>';
+								echo '<p class="description">'.__('....and much more.', 'all-in-one-wp-security-and-firewall').'</p>';
+								?>
+						</div>
+					</div>
 				</td>
 			</tr>
 			<tr valign="top">
 				<th scope="row"><?php _e('Enable legacy 5G firewall protection', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 				<td>
-				<input id="aiowps_enable_5g_firewall" name="aiowps_enable_5g_firewall" type="checkbox"<?php if ($aio_wp_security->configs->get_value('aiowps_enable_5g_firewall')=='1') echo ' checked="checked"'; ?> value="1"/>
-				<label for="aiowps_enable_5g_firewall" class="description"><?php _e('Check this if you want to apply the 5G Blacklist firewall protection from perishablepress.com to your site.', 'all-in-one-wp-security-and-firewall'); ?></label>
-				<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
-				<div class="aiowps_more_info_body">
-						<?php
-						echo '<p class="description">'.__('This setting will implement the 5G security firewall protection mechanisms on your site which include the following things:', 'all-in-one-wp-security-and-firewall').'</p>';
-						echo '<p class="description">'.__('1) Block forbidden characters commonly used in exploitative attacks.', 'all-in-one-wp-security-and-firewall').'</p>';
-						echo '<p class="description">'.__('2) Block malicious encoded URL characters such as the ".css(" string.', 'all-in-one-wp-security-and-firewall').'</p>';
-						echo '<p class="description">'.__('3) Guard against the common patterns and specific exploits in the root portion of targeted URLs.', 'all-in-one-wp-security-and-firewall').'</p>';
-						echo '<p class="description">'.__('4) Stop attackers from manipulating query strings by disallowing illicit characters.', 'all-in-one-wp-security-and-firewall').'</p>';
-						echo '<p class="description">'.__('....and much more.', 'all-in-one-wp-security-and-firewall').'</p>';
-						?>
-				</div>
+					<div class="aiowps_switch_container">
+						<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to apply the 5G Blacklist firewall protection from perishablepress.com to your site.', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_5g_firewall', '1' == $aio_wp_security->configs->get_value('aiowps_enable_5g_firewall')); ?>
+						<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
+						<div class="aiowps_more_info_body">
+								<?php
+								echo '<p class="description">'.__('This setting will implement the 5G security firewall protection mechanisms on your site which include the following things:', 'all-in-one-wp-security-and-firewall').'</p>';
+								echo '<p class="description">'.__('1) Block forbidden characters commonly used in exploitative attacks.', 'all-in-one-wp-security-and-firewall').'</p>';
+								echo '<p class="description">'.__('2) Block malicious encoded URL characters such as the ".css(" string.', 'all-in-one-wp-security-and-firewall').'</p>';
+								echo '<p class="description">'.__('3) Guard against the common patterns and specific exploits in the root portion of targeted URLs.', 'all-in-one-wp-security-and-firewall').'</p>';
+								echo '<p class="description">'.__('4) Stop attackers from manipulating query strings by disallowing illicit characters.', 'all-in-one-wp-security-and-firewall').'</p>';
+								echo '<p class="description">'.__('....and much more.', 'all-in-one-wp-security-and-firewall').'</p>';
+								?>
+						</div>
+					</div>
 				</td>
 			</tr>
 		</table>
@@ -79,17 +81,18 @@
 							<tr>
 							<th><?php printf(__('Block %s method', 'all-in-one-wp-security-and-firewall'), strtoupper($block_request_method));?>:</th>
 							<td>
-								<input id="<?php echo esc_attr("aiowps_block_request_method_{$block_request_method}");?>" name="<?php echo esc_attr("aiowps_block_request_method_{$block_request_method}");?>" type="checkbox"<?php checked(in_array(strtoupper($block_request_method), $methods));?>>
-								<label for="<?php echo esc_attr("aiowps_block_request_method_{$block_request_method}");?>" class="description"><?php printf(__('Check this to block the %s request method', 'all-in-one-wp-security-and-firewall'), strtoupper($block_request_method));?></label>
-								<?php if ('put' == $block_request_method) {?>
-								<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
-								<div class="aiowps_more_info_body">
-									<?php
-									echo '<p class="description">' . __('Some WooCommerce extensions use the PUT request method in addition to GET and POST.', 'all-in-one-wp-security-and-firewall') . ' ' . __("This means WooCommerce users shouldn't block the PUT request method.", 'all-in-one-wp-security-and-firewall') . '</p>';
-									echo '<p class="description">' . __('A few REST requests use the PUT request method.', 'all-in-one-wp-security-and-firewall') . ' ' . __('If your site is communicated by the WP REST API, you should not block the PUT request method.', 'all-in-one-wp-security-and-firewall') . '</p>';
-									?>
+								<div class="aiowps_switch_container">
+									<?php AIOWPSecurity_Utility_UI::setting_checkbox(sprintf(__('Check this to block the %s request method', 'all-in-one-wp-security-and-firewall'), strtoupper($block_request_method)), "aiowps_block_request_method_{$block_request_method}", in_array(strtoupper($block_request_method), $methods)); ?>
+									<?php if ('put' == $block_request_method) {?>
+									<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
+									<div class="aiowps_more_info_body">
+										<?php
+										echo '<p class="description">' . __('Some WooCommerce extensions use the PUT request method in addition to GET and POST.', 'all-in-one-wp-security-and-firewall') . ' ' . __("This means WooCommerce users shouldn't block the PUT request method.", 'all-in-one-wp-security-and-firewall') . '</p>';
+										echo '<p class="description">' . __('A few REST requests use the PUT request method.', 'all-in-one-wp-security-and-firewall') . ' ' . __('If your site is communicated by the WP REST API, you should not block the PUT request method.', 'all-in-one-wp-security-and-firewall') . '</p>';
+										?>
+									</div>
 								</div>
-								<?php } ?>
+									<?php } ?>
 							</td>
 							</tr>
 						<?php } ?>
@@ -108,29 +111,33 @@
 						<tr>
 							<th><?php _e('Block query strings', 'all-in-one-wp-security-and-firewall');?>:</th>
 							<td>
-								<input  id="aiowps_block_query" name="aiowps_block_query" type="checkbox"<?php checked($blocked_query);?>>
-								<label for="aiowps_block_query" class="description"><?php _e('Check this to block all query strings recommended by 6G', 'all-in-one-wp-security-and-firewall');?></label>
+								<div class="aiowps_switch_container">
+									<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this to block all query strings recommended by 6G', 'all-in-one-wp-security-and-firewall'), 'aiowps_block_query', $blocked_query); ?>
+								</div>
 							</td>
 						</tr>
 						<tr>
 							<th><?php _e('Block request strings', 'all-in-one-wp-security-and-firewall');?>:</th>
 							<td>
-								<input  id="aiowps_block_request" name="aiowps_block_request" type="checkbox"<?php checked($blocked_request);?>>
-								<label for="aiowps_block_request" class="description"><?php _e('Check this to block all request strings recommended by 6G', 'all-in-one-wp-security-and-firewall');?></label>
+								<div class="aiowps_switch_container">
+									<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this to block all request strings recommended by 6G', 'all-in-one-wp-security-and-firewall'), 'aiowps_block_request', $blocked_request); ?>
+								</div>
 							</td>
 						</tr>
 						<tr>
 							<th><?php _e('Block referrers', 'all-in-one-wp-security-and-firewall');?>:</th>
 							<td>
-								<input  id="aiowps_block_refs" name="aiowps_block_refs" type="checkbox"<?php checked($blocked_referrers);?>>
-								<label for="aiowps_block_refs" class="description"><?php _e('Check this to block all referrers recommended by 6G', 'all-in-one-wp-security-and-firewall');?></label>
+								<div class="aiowps_switch_container">
+									<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this to block all referrers recommended by 6G', 'all-in-one-wp-security-and-firewall'), 'aiowps_block_refs', $blocked_referrers); ?>
+								</div>
 							</td>
 						</tr>
 						<tr>
 						<th><?php _e('Block user-agents', 'all-in-one-wp-security-and-firewall');?>:</th>
 						<td>
-							<input  id="aiowps_block_agents" name="aiowps_block_agents" type="checkbox"<?php checked($blocked_agents);?>>
-							<label for="aiowps_block_agents" class="description"><?php _e('Check this to block all user-agents recommended by 6G', 'all-in-one-wp-security-and-firewall');?></label>
+							<div class="aiowps_switch_container">
+								<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this to block all user-agents recommended by 6G', 'all-in-one-wp-security-and-firewall'), 'aiowps_block_agents', $blocked_agents); ?>
+							</div>
 						</td>
 						</tr>
 					</table>

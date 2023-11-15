@@ -92,7 +92,7 @@ class AIOWPSecurity_User_Registration {
 	/**
 	 * This function serves the purpose of preventing login in certain plugins that enable user registration, such as WooCommerce and others.
 	 *
-	 * @return bool Retruns false means do not authenticate on registration
+	 * @return bool Returns false means do not authenticate on registration
 	 */
 	public function aios_registration_auth_new_customer() {
 		return false;

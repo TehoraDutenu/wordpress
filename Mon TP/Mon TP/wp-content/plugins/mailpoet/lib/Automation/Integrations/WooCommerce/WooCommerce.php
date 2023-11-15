@@ -37,6 +37,14 @@ class WooCommerce {
   }
 
   /**
+   * @param mixed $product
+   * @return \WC_Product|null|false
+   */
+  public function wcGetProduct($product) {
+    return wc_get_product($product);
+  }
+
+  /**
    * @param int|bool $order
    * @return bool|\WC_Order|\WC_Order_Refund
    */
@@ -46,5 +54,9 @@ class WooCommerce {
 
   public function wcGetOrderStatusName(string $status): string {
     return wc_get_order_status_name($status);
+  }
+
+  public function wcReviewRatingsEnabled(): bool {
+    return wc_review_ratings_enabled();
   }
 }

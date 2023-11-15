@@ -100,6 +100,14 @@ class Footer_menu extends Walker_Nav_Menu
     }
 }
 
+// -- SHORTCODES
+// -  Sans paramètres
+function monShortCode()
+{
+    return "<div>Mon shortcode sans paramètres</div>";
+}
+add_shortcode('monShortCode', 'monShortCode');
+
 
 // --- WIDGET
 function register_custom_widget_area()

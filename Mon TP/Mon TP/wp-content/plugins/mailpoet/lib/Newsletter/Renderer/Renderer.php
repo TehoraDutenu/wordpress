@@ -7,15 +7,15 @@ if (!defined('ABSPATH')) exit;
 
 use MailPoet\Config\Env;
 use MailPoet\Config\ServicesChecker;
-use MailPoet\EmailEditor\Engine\Renderer\BodyRenderer as GuntenbergBodyRenderer;
+use MailPoet\EmailEditor\Engine\Renderer\Renderer as GuntenbergRenderer;
 use MailPoet\Entities\NewsletterEntity;
+use MailPoet\Entities\SendingQueueEntity;
 use MailPoet\Features\FeaturesController;
 use MailPoet\Logging\LoggerFactory;
 use MailPoet\Newsletter\NewslettersRepository;
 use MailPoet\Newsletter\Renderer\EscapeHelper as EHelper;
 use MailPoet\Newsletter\Sending\SendingQueuesRepository;
 use MailPoet\NewsletterProcessingException;
-use MailPoet\Tasks\Sending as SendingTask;
 use MailPoet\Util\pQuery\DomNode;
 use MailPoet\WP\Functions as WPFunctions;
 use MailPoetVendor\Html2Text\Html2Text;
@@ -27,8 +27,8 @@ class Renderer {
   /** @var BodyRenderer */
   private $bodyRenderer;
 
-  /** @var GuntenbergBodyRenderer */
-  private $guntenbergBodyRenderer;
+  /** @var GuntenbergRenderer */
+  private $guntenbergRenderer;
 
   /** @var Preprocessor */
   private $preprocessor;
@@ -56,7 +56,7 @@ class Renderer {
 
   public function __construct(
     BodyRenderer $bodyRenderer,
-    GuntenbergBodyRenderer $guntenbergBodyRenderer,
+    GuntenbergRenderer $guntenbergRenderer,
     Preprocessor $preprocessor,
     \MailPoetVendor\CSS $cSSInliner,
     ServicesChecker $servicesChecker,
@@ -67,7 +67,7 @@ class Renderer {
     FeaturesController $featuresController
   ) {
     $this->bodyRenderer = $bodyRenderer;
-    $this->guntenbergBodyRenderer = $guntenbergBodyRenderer;
+    $this->guntenbergRenderer = $guntenbergRenderer;
     $this->preprocessor = $preprocessor;
     $this->cSSInliner = $cSSInliner;
     $this->servicesChecker = $servicesChecker;
@@ -78,81 +78,78 @@ class Renderer {
     $this->featuresController = $featuresController;
   }
 
-  public function render(NewsletterEntity $newsletter, SendingTask $sendingTask = null, $type = false) {
-    return $this->_render($newsletter, $sendingTask, $type);
+  public function render(NewsletterEntity $newsletter, SendingQueueEntity $sendingQueue = null, $type = false) {
+    return $this->_render($newsletter, $sendingQueue, $type);
   }
 
   public function renderAsPreview(NewsletterEntity $newsletter, $type = false, ?string $subject = null) {
     return $this->_render($newsletter, null, $type, true, $subject);
   }
 
-  private function _render(NewsletterEntity $newsletter, SendingTask $sendingTask = null, $type = false, $preview = false, $subject = null) {
-    $body = (is_array($newsletter->getBody()))
-      ? $newsletter->getBody()
-      : [];
-    $content = (array_key_exists('content', $body))
-      ? $body['content']
-      : [];
-    $styles = (array_key_exists('globalStyles', $body))
-      ? $body['globalStyles']
-      : [];
-
-    if (
-      !$this->servicesChecker->isUserActivelyPaying() && !$preview
-    ) {
-      $content = $this->addMailpoetLogoContentBlock($content, $styles);
-    }
-
+  private function _render(NewsletterEntity $newsletter, SendingQueueEntity $sendingQueue = null, $type = false, $preview = false, $subject = null) {
     $language = $this->wp->getBloginfo('language');
     $metaRobots = $preview ? '<meta name="robots" content="noindex, nofollow" />' : '';
-    $renderedBody = "";
-    try {
-      $content = $this->preprocessor->process($newsletter, $content, $preview, $sendingTask);
-      if ($this->featuresController->isSupported(FeaturesController::GUTENBERG_EMAIL_EDITOR) && $newsletter->getWpPostId()) {
-        $post = $newsletter->getWpPost();
-        if (!$post instanceof \WP_Post) {
-          throw new NewsletterProcessingException('Missing email post object');
-        }
-        $renderedBody = $this->guntenbergBodyRenderer->renderBody($post);
-      } else {
+    $subject = $subject ?: $newsletter->getSubject();
+    $wpPost = $newsletter->getWpPost();
+    if ($this->featuresController->isSupported(FeaturesController::GUTENBERG_EMAIL_EDITOR) && $wpPost instanceof \WP_Post) {
+      $renderedNewsletter = $this->guntenbergRenderer->render($wpPost, $subject, $newsletter->getPreheader(), $language, $metaRobots);
+    } else {
+      $body = (is_array($newsletter->getBody()))
+        ? $newsletter->getBody()
+        : [];
+      $content = (array_key_exists('content', $body))
+        ? $body['content']
+        : [];
+      $styles = (array_key_exists('globalStyles', $body))
+        ? $body['globalStyles']
+        : [];
+
+      if (
+        !$this->servicesChecker->isUserActivelyPaying() && !$preview
+      ) {
+        $content = $this->addMailpoetLogoContentBlock($content, $styles);
+      }
+
+      $renderedBody = "";
+      try {
+        $content = $this->preprocessor->process($newsletter, $content, $preview, $sendingQueue);
         $renderedBody = $this->bodyRenderer->renderBody($newsletter, $content);
+      } catch (NewsletterProcessingException $e) {
+        $this->loggerFactory->getLogger(LoggerFactory::TOPIC_COUPONS)->error(
+          $e->getMessage(),
+          ['newsletter_id' => $newsletter->getId()]
+        );
+        $this->newslettersRepository->setAsCorrupt($newsletter);
+        if ($sendingQueue) {
+          $this->sendingQueuesRepository->pause($sendingQueue);
+        }
       }
+      $renderedStyles = $this->renderStyles($styles);
+      $customFontsLinks = StylesHelper::getCustomFontsLinks($styles);
 
-    } catch (NewsletterProcessingException $e) {
-      $this->loggerFactory->getLogger(LoggerFactory::TOPIC_COUPONS)->error(
-        $e->getMessage(),
-        ['newsletter_id' => $newsletter->getId()]
+      $template = $this->injectContentIntoTemplate(
+        (string)file_get_contents(dirname(__FILE__) . '/' . self::NEWSLETTER_TEMPLATE),
+        [
+          $language,
+          $metaRobots,
+          htmlspecialchars($subject),
+          $renderedStyles,
+          $customFontsLinks,
+          EHelper::escapeHtmlText($newsletter->getPreheader()),
+          $renderedBody,
+        ]
       );
-      $this->newslettersRepository->setAsCorrupt($newsletter);
-      if ($newsletter->getLatestQueue()) {
-        $this->sendingQueuesRepository->pause($newsletter->getLatestQueue());
+      if ($template === null) {
+        $template = '';
       }
-    }
-    $renderedStyles = $this->renderStyles($styles);
-    $customFontsLinks = StylesHelper::getCustomFontsLinks($styles);
+      $templateDom = $this->inlineCSSStyles($template);
+      $template = $this->postProcessTemplate($templateDom);
 
-    $template = $this->injectContentIntoTemplate(
-      (string)file_get_contents(dirname(__FILE__) . '/' . self::NEWSLETTER_TEMPLATE),
-      [
-        $language,
-        $metaRobots,
-        htmlspecialchars($subject ?: $newsletter->getSubject()),
-        $renderedStyles,
-        $customFontsLinks,
-        EHelper::escapeHtmlText($newsletter->getPreheader()),
-        $renderedBody,
-      ]
-    );
-    if ($template === null) {
-      $template = '';
+      $renderedNewsletter = [
+        'html' => $template,
+        'text' => $this->renderTextVersion($template),
+      ];
     }
-    $templateDom = $this->inlineCSSStyles($template);
-    $template = $this->postProcessTemplate($templateDom);
-
-    $renderedNewsletter = [
-      'html' => $template,
-      'text' => $this->renderTextVersion($template),
-    ];
 
     return ($type && !empty($renderedNewsletter[$type])) ?
       $renderedNewsletter[$type] :

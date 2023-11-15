@@ -249,7 +249,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu {
 			echo '<td>' . $recommended . '</td>';
 			if ($fix) {
 				echo '<td>
-					<input type="submit" onclick="return set_file_permision_tochange(\'' . esc_js($path) . '\', \'' . esc_js($recommended) . '\')" name="aiowps_fix_permissions" value="' . esc_attr(__('Set recommended permissions', 'all-in-one-wp-security-and-firewall')) . '" class="button-secondary">
+					<input type="submit" onclick="return set_file_permission_tochange(\'' . esc_js($path) . '\', \'' . esc_js($recommended) . '\')" name="aiowps_fix_permissions" value="' . esc_attr(__('Set recommended permissions', 'all-in-one-wp-security-and-firewall')) . '" class="button-secondary">
 					</td>';
 			} else {
 				echo '<td>'.__('No action required', 'all-in-one-wp-security-and-firewall').'</td>';
@@ -274,7 +274,7 @@ class AIOWPSecurity_Filesystem_Menu extends AIOWPSecurity_Admin_Menu {
 					});
 			});
 			
-			function set_file_permision_tochange(path, recommended) {
+			function set_file_permission_tochange(path, recommended) {
 				jQuery('#aiowps_permission_chg_file').val(path);
 				jQuery('#aiowps_recommended_permissions').val(recommended);
 				return true;

@@ -12,6 +12,7 @@ use MailPoet\Entities\SubscriberEntity;
 use MailPoet\Entities\SubscriberSegmentEntity;
 use MailPoet\InvalidStateException;
 use MailPoet\NotFoundException;
+use MailPoet\Segments\DynamicSegments\Exceptions\InvalidFilterException;
 use MailPoet\Segments\DynamicSegments\FilterHandler;
 use MailPoetVendor\Doctrine\DBAL\Connection;
 use MailPoetVendor\Doctrine\DBAL\Driver\Statement;
@@ -27,12 +28,17 @@ class SegmentSubscribersRepository {
   /** @var FilterHandler */
   private $filterHandler;
 
+  /** @var SegmentsRepository */
+  private $segmentsRepository;
+
   public function __construct(
     EntityManager $entityManager,
-    FilterHandler $filterHandler
+    FilterHandler $filterHandler,
+    SegmentsRepository $segmentsRepository
   ) {
     $this->entityManager = $entityManager;
     $this->filterHandler = $filterHandler;
+    $this->segmentsRepository = $segmentsRepository;
   }
 
   public function findSubscribersIdsInSegment(int $segmentId, array $candidateIds = null): array {
@@ -49,7 +55,7 @@ class SegmentSubscribersRepository {
     return (int)$result[$status ?: 'all'];
   }
 
-  public function getSubscribersCountBySegmentIds(array $segmentIds, string $status = null): int {
+  public function getSubscribersCountBySegmentIds(array $segmentIds, string $status = null, ?int $filterSegmentId = null): int {
     $segmentRepository = $this->entityManager->getRepository(SegmentEntity::class);
     $segments = $segmentRepository->findBy(['id' => $segmentIds]);
     $subscribersTable = $this->entityManager->getClassMetadata(SubscriberEntity::class)->getTableName();
@@ -66,11 +72,15 @@ class SegmentSubscribersRepository {
         $segmentQb = $this->filterSubscribersInDynamicSegment($segmentQb, $segment, $status);
       }
 
-      // inner parameters have to be merged to outer queryBuilder
+      // inner parameters and types have to be merged to outer queryBuilder
       $queryBuilder->setParameters(array_merge(
         $segmentQb->getParameters(),
         $queryBuilder->getParameters()
-      ));
+      ), array_merge(
+          $segmentQb->getParameterTypes(),
+          $queryBuilder->getParameterTypes()
+        )
+      );
       $subQueries[] = $segmentQb->getSQL();
     }
 
@@ -80,6 +90,21 @@ class SegmentSubscribersRepository {
       'inner_subscribers',
       "inner_subscribers.inner_id = {$subscribersTable}.id"
     );
+
+    try {
+      if (is_int($filterSegmentId)) {
+        $filterSegment = $this->segmentsRepository->verifyDynamicSegmentExists($filterSegmentId);
+        $filterSegmentQb = $this->createCountQueryBuilder();
+        $filterSegmentQb->select("{$subscribersTable}.id AS filter_segment_subscriber_id");
+        $filterSegmentQb = $this->filterSubscribersInDynamicSegment($filterSegmentQb, $filterSegment, $status);
+        $queryBuilder->setParameters(array_merge($filterSegmentQb->getParameters(), $queryBuilder->getParameters()), array_merge($filterSegmentQb->getParameterTypes(), $queryBuilder->getParameterTypes()));
+        $queryBuilder->innerJoin($subscribersTable, sprintf('(%s)', $filterSegmentQb->getSQL()),
+          'filter_segment',
+          "filter_segment.filter_segment_subscriber_id = {$subscribersTable}.id");
+      }
+    } catch (InvalidStateException $exception) {
+      return 0;
+    }
 
     $statement = $this->executeQuery($queryBuilder);
     $result = $statement->fetchColumn();
@@ -399,7 +424,13 @@ class SegmentSubscribersRepository {
     if (count($filters) === 0) {
       return $queryBuilder->andWhere('0 = 1');
     } elseif ($segment instanceof SegmentEntity) {
-      $queryBuilder = $this->filterHandler->apply($queryBuilder, $segment);
+      try {
+        $queryBuilder = $this->filterHandler->apply($queryBuilder, $segment);
+      } catch (InvalidFilterException $e) {
+        // If a segment has an invalid filter, we should simply consider it empty instead of throwing
+        // an unhandled error. Unhandled errors here can break many admin pages.
+        $queryBuilder->andWhere('0 = 1');
+      }
     }
     $subscribersTable = $this->entityManager->getClassMetadata(SubscriberEntity::class)->getTableName();
     $queryBuilder = $queryBuilder->andWhere("$subscribersTable.deleted_at IS NULL");

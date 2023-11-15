@@ -11,15 +11,16 @@
 			<div class="aio_blue_box">
 				<?php
 					echo '<p>'.__('This feature allows you to prevent other sites from displaying any of your content via a frame or iframe.', 'all-in-one-wp-security-and-firewall').'</p>';
-					echo '<p>'.__('When enabled, this feature will set the "X-Frame-Options" paramater to "sameorigin" in the HTTP header.', 'all-in-one-wp-security-and-firewall').'</p>';
+					echo '<p>'.__('When enabled, this feature will set the "X-Frame-Options" parameter to "sameorigin" in the HTTP header.', 'all-in-one-wp-security-and-firewall').'</p>';
 				?>
 			</div>
 			<table class="form-table">
 				<tr valign="top">
 					<th scope="row"><?php _e('Enable iFrame protection', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-						<input id="aiowps_prevent_site_display_inside_frame" name="aiowps_prevent_site_display_inside_frame" type="checkbox"<?php if ('1' == $aio_wp_security->configs->get_value('aiowps_prevent_site_display_inside_frame')) echo ' checked="checked"'; ?> value="1"/>
-						<label for="aiowps_prevent_site_display_inside_frame" class="description"><?php _e('Check this if you want to stop other sites from displaying your content in a frame or iframe.', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to stop other sites from displaying your content in a frame or iframe.', 'all-in-one-wp-security-and-firewall'), 'aiowps_prevent_site_display_inside_frame', '1' == $aio_wp_security->configs->get_value('aiowps_prevent_site_display_inside_frame')); ?>
+						</div>
 					</td>
 				</tr>
 			</table>

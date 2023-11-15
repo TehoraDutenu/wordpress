@@ -41,8 +41,9 @@
 				<tr valign="top">
 					<th scope="row"><?php _e('Enable rename login page feature', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-					<input id="aiowps_enable_rename_login_page" name="aiowps_enable_rename_login_page" type="checkbox"<?php checked($aio_wp_security->configs->get_value('aiowps_enable_rename_login_page'), '1'); ?> value="1"/>
-					<label for="aiowps_enable_rename_login_page" class="description"><?php _e('Check this if you want to enable the rename login page feature', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to enable the rename login page feature', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_rename_login_page', '1' == $aio_wp_security->configs->get_value('aiowps_enable_rename_login_page')); ?>
+						</div>
 					</td>
 				</tr>
 				<tr valign="top">

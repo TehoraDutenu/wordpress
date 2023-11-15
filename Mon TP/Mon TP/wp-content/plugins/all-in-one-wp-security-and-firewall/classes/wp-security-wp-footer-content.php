@@ -24,6 +24,13 @@ class AIOWPSecurity_WP_Footer_Content {
 			$this->output_copy_protection_code();
 		}
 		
+		//Spambot detection antibot form code
+		if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_spambot_detecting')) {
+			if (is_singular() || is_archive()) {
+				AIOWPSecurity_Comment::insert_antibot_keys_in_comment_form();
+			}
+		}
+		
 		//TODO - add other footer output content here
 	}
 

@@ -6,10 +6,14 @@ if (!defined('ABSPATH')) exit;
 
 
 use MailPoet\Doctrine\Repository;
+use MailPoet\Entities\DynamicSegmentFilterEntity;
 use MailPoet\Entities\NewsletterEntity;
 use MailPoet\Entities\ScheduledTaskEntity;
+use MailPoet\Entities\SegmentEntity;
 use MailPoet\Entities\SendingQueueEntity;
 use MailPoet\Entities\SubscriberEntity;
+use MailPoet\Logging\LoggerFactory;
+use MailPoet\Segments\DynamicSegments\FilterFactory;
 use MailPoet\WP\Functions as WPFunctions;
 use MailPoetVendor\Carbon\Carbon;
 use MailPoetVendor\Doctrine\ORM\EntityManager;
@@ -24,14 +28,24 @@ class SendingQueuesRepository extends Repository {
   /** @var WPFunctions */
   private $wp;
 
+  /** @var FilterFactory */
+  private $filterFactory;
+
+  /** @var LoggerFactory */
+  private $loggerFactory;
+
   public function __construct(
     EntityManager $entityManager,
     WPFunctions $wp,
-    ScheduledTaskSubscribersRepository $scheduledTaskSubscribersRepository
+    ScheduledTaskSubscribersRepository $scheduledTaskSubscribersRepository,
+    FilterFactory $filterFactory,
+    LoggerFactory $loggerFactory
   ) {
     parent::__construct($entityManager);
     $this->scheduledTaskSubscribersRepository = $scheduledTaskSubscribersRepository;
     $this->wp = $wp;
+    $this->filterFactory = $filterFactory;
+    $this->loggerFactory = $loggerFactory;
   }
 
   protected function getEntityClassName() {
@@ -166,5 +180,49 @@ class SendingQueuesRepository extends Repository {
     $meta['campaignId'] = $campaignId;
     $queue->setMeta($meta);
     $this->flush();
+  }
+
+  public function saveFilterSegmentMeta(SendingQueueEntity $queue, SegmentEntity $filterSegmentEntity): void {
+    $meta = $queue->getMeta() ?? [];
+    $meta['filterSegment'] = [
+      'id' => $filterSegmentEntity->getId(),
+      'name' => $filterSegmentEntity->getName(),
+      'updatedAt' => $filterSegmentEntity->getUpdatedAt(),
+      'filters' => array_map(function(DynamicSegmentFilterEntity $filterEntity) {
+        $filter = $this->filterFactory->getFilterForFilterEntity($filterEntity);
+        $data = $filterEntity->getFilterData();
+        $filterData = [
+          'filterType' => $data->getFilterType(),
+          'action' => $data->getAction(),
+          'data' => $filterEntity->getFilterData()->getData(),
+          'lookupData' => [],
+        ];
+        try {
+          $filterData['lookupData'] = $filter->getLookupData($data);
+        } catch (\Throwable $e) {
+          $this->loggerFactory->getLogger(LoggerFactory::TOPIC_SEGMENTS)->error("Failed to save lookup data for filter {$filterEntity->getId()}: {$e->getMessage()}");
+        }
+        return $filterData;
+      }, $filterSegmentEntity->getDynamicFilters()->toArray()),
+    ];
+    $queue->setMeta($meta);
+    $this->flush();
+  }
+
+  public function updateCounts(SendingQueueEntity $queue, ?int $count = null): void {
+    if ($count) {
+      // increment/decrement counts based on known subscriber count, don't exceed the bounds
+      $queue->setCountProcessed(min($queue->getCountProcessed() + $count, $queue->getCountTotal()));
+      $queue->setCountToProcess(max($queue->getCountToProcess() - $count, 0));
+    } else {
+      // query DB to update counts, slower but more accurate, to be used if count isn't known
+      $task = $queue->getTask();
+      $processed = $task ? $this->scheduledTaskSubscribersRepository->countProcessed($task) : 0;
+      $unprocessed = $task ? $this->scheduledTaskSubscribersRepository->countUnprocessed($task) : 0;
+      $queue->setCountProcessed($processed);
+      $queue->setCountToProcess($unprocessed);
+      $queue->setCountTotal($processed + $unprocessed);
+    }
+    $this->entityManager->flush();
   }
 }

@@ -43,8 +43,9 @@ if (!defined('AIOWPSECURITY_NOADS_B') || !AIOWPSECURITY_NOADS_B) {
 				<tr valign="top">
 					<th scope="row"><?php _e('Enable IP or user agent blacklisting', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-					<input id="aiowps_enable_blacklisting" name="aiowps_enable_blacklisting" type="checkbox"<?php checked($aio_wp_security->configs->get_value('aiowps_enable_blacklisting')); ?> value="1"/>
-					<label for="aiowps_enable_blacklisting" class="description"><?php _e('Check this if you want to enable the banning (or blacklisting) of selected IP addresses and/or user agents specified in the settings below', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to enable the banning (or blacklisting) of selected IP addresses and/or user agents specified in the settings below', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_blacklisting', '1' == $aio_wp_security->configs->get_value('aiowps_enable_blacklisting')); ?>
+						</div>
 					</td>
 				</tr>
 				<tr valign="top">
@@ -66,6 +67,7 @@ if (!defined('AIOWPSECURITY_NOADS_B') || !AIOWPSECURITY_NOADS_B) {
 						<span class="aiowps_more_info_anchor"><span class="aiowps_more_info_toggle_char">+</span><span class="aiowps_more_info_toggle_text"><?php _e('More Info', 'all-in-one-wp-security-and-firewall'); ?></span></span>
 						<div class="aiowps_more_info_body">
 							<?php
+								echo '<p class="description">' . __('The user agent string will be checked in a case-insensitive manner.', 'all-in-one-wp-security-and-firewall') . '</p>';
 								echo '<p class="description">' . __('Each user agent string must be on a new line.', 'all-in-one-wp-security-and-firewall') . '</p>';
 								echo '<p class="description">' . __('Example 1 - A single user agent string to block:', 'all-in-one-wp-security-and-firewall') . '</p>';
 								echo '<p class="description">SquigglebotBot</p>';

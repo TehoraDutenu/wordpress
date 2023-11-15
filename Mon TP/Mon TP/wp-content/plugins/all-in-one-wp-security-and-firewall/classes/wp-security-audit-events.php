@@ -53,6 +53,7 @@ class AIOWPSecurity_Audit_Events {
 		// Translation events
 		add_action('upgrader_process_complete', 'AIOWPSecurity_Audit_Events::translation_updated', 10, 2);
 
+		// Uncomment when the firewall config issues have been resolved
 		// Rule events
 		// add_action('plugins_loaded', 'AIOWPSecurity_Audit_Events::rule_event', 10, 2);
 

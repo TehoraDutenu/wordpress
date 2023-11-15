@@ -38,8 +38,9 @@ if (!defined('AIOWPSECURITY_NOADS_B') || !AIOWPSECURITY_NOADS_B) {
 				<tr valign="top">
 					<th scope="row"><?php _e('Enable 404 IP detection and lockout', 'all-in-one-wp-security-and-firewall'); ?>:</th>
 					<td>
-						<input id="aiowps_enable_404_IP_lockout" name="aiowps_enable_404_IP_lockout" type="checkbox"<?php if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_404_IP_lockout')) echo ' checked="checked"'; ?> value="1"/>
-						<label for="aiowps_enable_404_IP_lockout" class="description"><?php _e('Check this if you want to enable the lockout of selected IP addresses.', 'all-in-one-wp-security-and-firewall'); ?></label>
+						<div class="aiowps_switch_container">
+							<?php AIOWPSecurity_Utility_UI::setting_checkbox(__('Check this if you want to enable the lockout of selected IP addresses.', 'all-in-one-wp-security-and-firewall'), 'aiowps_enable_404_IP_lockout', '1' == $aio_wp_security->configs->get_value('aiowps_enable_404_IP_lockout')); ?>
+						</div>
 					</td>
 				</tr>
 				<!-- currently this option is automatically set when the aiowps_enable_404_IP_lockout feature is turned on

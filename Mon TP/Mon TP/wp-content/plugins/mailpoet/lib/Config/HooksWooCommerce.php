@@ -118,6 +118,14 @@ class HooksWooCommerce {
     }
   }
 
+  public function trackRefund($id) {
+    try {
+      $this->woocommercePurchases->trackRefund($id);
+    } catch (\Throwable $e) {
+      $this->logError($e, 'WooCommerce Purchases Refund');
+    }
+  }
+
   public function extendForm() {
     try {
       $this->subscriberRegistration->extendForm();
@@ -153,13 +161,16 @@ class HooksWooCommerce {
     }
   }
 
-  public function declareHposCompatibility() {
+  public function declareWooCompatibility() {
+
+    if (!class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+      return;
+    }
     try {
-      if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
-        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', Env::$pluginPath);
-      }
+      \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', Env::$pluginPath);
+      \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', Env::$pluginPath );
     } catch (\Throwable $e) {
-      $this->logError($e, 'WooCommerce HPOS Compatibility');
+      $this->logError($e, 'WooCommerce Compatibility');
     }
   }
 

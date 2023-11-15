@@ -20,19 +20,8 @@
     mailpoetColumnsSelect2 = JSON.parse("<%=subscriberFieldsSelect2|escape('js')%>"),
     mailpoetColumns = JSON.parse("<%=subscriberFields|escape('js')%>"),
     mailpoetSegments = JSON.parse("<%=segments|escape('js')%>");
-    var mailpoet_beacon_articles = [
-      '57ce07ffc6979108399a044b',
-      '57ce079f903360649f6e56fc',
-      '5b16db842c7d3a0fa9a2aa15',
-      '5d96ecd204286364bc8ff8f5',
-      '58a5a7502c7d3a576d353c78',
-      '5d0a1da404286318cac46fe5'
-    ];
 </script>
-<% endblock %>
 
-
-<% block translations %>
 <%= localize({
 'noMailChimpLists': __('No active lists found'),
 'serverError': __('Server error:'),
@@ -124,6 +113,7 @@
 'cleanListText1': __('We highly recommend cleaning your lists before importing them to MailPoet.'),
 'cleanListText2': __('Lists can have up to 20% of invalid addresses after a year because people change jobs and stop using their addresses. If you send with MailPoet, we will pause your sending and ask you to clean your list if we detect over 10% of invalid addresses.'),
 'tryListCleaning': _x('How can I clean my list?', 'CTA button label'),
+'cleanedList': _x('I cleaned my list', 'Text in button'),
 'listCleaningGotIt': _x('Got it, I’ll proceed to import', 'Text in a link'),
 'subscribed': __('Subscribed'),
 'unsubscribed': __('Unsubscribed'),
@@ -137,6 +127,5 @@
 'assignTagsLabel': __('Assign tags'),
 'assignTagsDescription': __('Pick a tag or create a new one to assign to these subscribers.'),
 'addNewTag': __('Add new tag'),
-
 }) %>
 <% endblock %>

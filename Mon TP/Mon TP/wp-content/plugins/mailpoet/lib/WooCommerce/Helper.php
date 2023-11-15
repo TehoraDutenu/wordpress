@@ -21,11 +21,19 @@ class Helper {
   }
 
   public function isWooCommerceActive() {
-    return class_exists('WooCommerce');
+    return class_exists('WooCommerce') && $this->wp->isPluginActive('woocommerce/woocommerce.php');
   }
 
   public function getWooCommerceVersion() {
     return $this->isWooCommerceActive() ? get_plugin_data(WP_PLUGIN_DIR . '/woocommerce/woocommerce.php')['Version'] : null;
+  }
+
+  public function getPurchaseStates(): array {
+
+    return (array)$this->wp->applyFilters(
+      'mailpoet_purchase_order_states',
+      ['completed']
+    );
   }
 
   public function isWooCommerceBlocksActive($min_version = '') {
@@ -130,7 +138,7 @@ class Helper {
       'paginate' => true,
     ])->total;
 
-    return $ordersCount;
+    return intval($ordersCount);
   }
 
   public function getRawPrice($price, array $args = []) {
@@ -143,7 +151,7 @@ class Helper {
   }
 
   public function getCustomersCount(): int {
-    if (!class_exists(Query::class)) {
+    if (!$this->isWooCommerceActive() || !class_exists(Query::class)) {
       return 0;
     }
     $query = new Query([
@@ -206,24 +214,46 @@ class Helper {
     return wc_get_order_statuses();
   }
 
-  public function getCouponList(): array {
-    $couponPosts = $this->wp->getPosts([
-      'posts_per_page' => -1,
+  /**
+   * @return array|\WP_Post[]
+   */
+  public function getCouponList(
+    int $pageSize = 10,
+    int $pageNumber = 1,
+    ?string $discountType = null,
+    ?string $search = null,
+    array $includeCouponIds = []
+  ): array {
+    $args = [
+      'posts_per_page' => $pageSize,
       'orderby' => 'name',
       'order' => 'asc',
       'post_type' => 'shop_coupon',
       'post_status' => 'publish',
-    ]);
+      'paged' => $pageNumber,
+    ];
+    // Filtering coupons by discount type
+    if ($discountType) {
+      $args['meta_key'] = 'discount_type';
+      $args['meta_value'] = $discountType;
+    }
+    // Search coupon by a query string
+    if ($search) {
+      $args['s'] = $search;
+    }
 
-    return array_map(function(\WP_Post $post): array {
-      $discountType = $this->wp->getPostMeta($post->ID, 'discount_type', true);
-      return [
-        'id' => $post->ID,
-        'text' => $post->post_title, // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps
-        'excerpt' => $post->post_excerpt, // phpcs:ignore Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps
-        'discountType' => $discountType,
-      ];
-    }, $couponPosts);
+    $includeCoupons = [];
+    // We need to include the coupon with the given ID in the first page
+    if ($includeCouponIds && $pageNumber === 1) {
+      $includeArgs = $args;
+      $includeArgs['include'] = $includeCouponIds;
+      $includeCoupons = $this->wp->getPosts($includeArgs);
+    }
+
+    // We remove duplicates because one of the remaining pages might contain the coupon with the given ID
+    $result = array_merge($includeCoupons, $this->wp->getPosts($args));
+    $result = array_unique($result, SORT_REGULAR);
+    return array_values($result);
   }
 
   public function wcGetPriceDecimalSeparator() {
@@ -269,7 +299,13 @@ class Helper {
       $this->formatShippingMethods($outOfCoverageShippingZone->get_shipping_methods(), $outOfCoverageShippingZone->get_zone_name())
     );
 
-    return $formattedShippingMethodData;
+    $keyedZones = [];
+
+    foreach ($formattedShippingMethodData as $shippingMethodArray) {
+      $keyedZones[$shippingMethodArray['instanceId']] = $shippingMethodArray;
+    }
+
+    return $keyedZones;
   }
 
   protected function formatShippingMethods(array $shippingMethods, string $shippingZoneName): array {

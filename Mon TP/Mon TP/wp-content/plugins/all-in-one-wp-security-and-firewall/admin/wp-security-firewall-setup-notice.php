@@ -392,7 +392,7 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 				<p><?php _e('If you would like to manually set up the necessary file, please follow these steps:', 'all-in-one-wp-security-and-firewall');?></p>
 				<p>
 				    <?php
-				    /* translators: %s Boostrap file name. */
+				    /* translators: %s Bootstrap file name. */
 				    printf(__('1. Create a file with the name %s in the same directory as your WordPress install is in, i.e.:', 'all-in-one-wp-security-and-firewall'), pathinfo($this->bootstrap, PATHINFO_BASENAME));
                     ?>
                 </p>

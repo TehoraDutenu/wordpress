@@ -9,15 +9,15 @@ use MailPoet\AdminPages\PageRenderer;
 use MailPoet\Cron\ActionScheduler\Actions\DaemonRun;
 use MailPoet\Cron\ActionScheduler\Actions\DaemonTrigger;
 use MailPoet\Cron\CronHelper;
+use MailPoet\Cron\Workers\SendingQueue\SendingQueue;
 use MailPoet\Entities\ScheduledTaskEntity;
-use MailPoet\Helpscout\Beacon;
 use MailPoet\Mailer\MailerLog;
 use MailPoet\Newsletter\Sending\ScheduledTasksRepository;
 use MailPoet\Newsletter\Sending\SendingQueuesRepository;
 use MailPoet\Newsletter\Url as NewsletterURL;
 use MailPoet\Router\Endpoints\CronDaemon;
 use MailPoet\Services\Bridge;
-use MailPoet\Tasks\Sending;
+use MailPoet\SystemReport\SystemReportCollector;
 use MailPoet\WP\DateTime;
 
 class Help {
@@ -27,8 +27,8 @@ class Help {
   /** @var CronHelper */
   private $cronHelper;
 
-  /** @var Beacon */
-  private $helpscoutBeacon;
+  /** @var SystemReportCollector */
+  private $systemReportCollector;
 
   /** @var Bridge $bridge */
   private $bridge;
@@ -45,7 +45,7 @@ class Help {
   public function __construct(
     PageRenderer $pageRenderer,
     CronHelper $cronHelper,
-    Beacon $helpscoutBeacon,
+    SystemReportCollector $systemReportCollector,
     Bridge $bridge,
     ScheduledTasksRepository $scheduledTasksRepository,
     SendingQueuesRepository $sendingQueuesRepository,
@@ -53,7 +53,7 @@ class Help {
   ) {
     $this->pageRenderer = $pageRenderer;
     $this->cronHelper = $cronHelper;
-    $this->helpscoutBeacon = $helpscoutBeacon;
+    $this->systemReportCollector = $systemReportCollector;
     $this->bridge = $bridge;
     $this->scheduledTasksRepository = $scheduledTasksRepository;
     $this->sendingQueuesRepository = $sendingQueuesRepository;
@@ -61,7 +61,7 @@ class Help {
   }
 
   public function render() {
-    $systemInfoData = $this->helpscoutBeacon->getData(true);
+    $systemInfoData = $this->systemReportCollector->getData(true);
     try {
       $cronPingUrl = $this->cronHelper->getCronUrl(CronDaemon::ACTION_PING);
       $cronPingResponse = $this->cronHelper->pingDaemon();
@@ -89,7 +89,7 @@ class Help {
     $systemStatusData['queueStatus']['tasksStatusCounts'] = $this->scheduledTasksRepository->getCountsPerStatus();
     $systemStatusData['queueStatus']['latestTasks'] = array_map(function ($task) {
       return $this->buildTaskData($task);
-    }, $this->scheduledTasksRepository->getLatestTasks(Sending::TASK_TYPE));
+    }, $this->scheduledTasksRepository->getLatestTasks(SendingQueue::TASK_TYPE));
     $this->pageRenderer->displayPage(
       'help.html',
       [
@@ -133,7 +133,7 @@ class Help {
 
   public function buildTaskData(ScheduledTaskEntity $task): array {
     $queue = $newsletter = null;
-    if ($task->getType() === Sending::TASK_TYPE) {
+    if ($task->getType() === SendingQueue::TASK_TYPE) {
       $queue = $this->sendingQueuesRepository->findOneBy(['task' => $task]);
       $newsletter = $queue ? $queue->getNewsletter() : null;
     }
